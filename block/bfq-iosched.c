@@ -4566,8 +4566,6 @@ static int bfq_set_request(struct request_queue *q, struct request *rq,
 	if (!bic)
 		goto queue_fail;
 
-	bfq_check_ioprio_change(bic, bio);
-
 	bfq_bic_update_cgroup(bic, bio);
 
 new_queue:
