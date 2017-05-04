@@ -686,12 +686,8 @@ static unsigned int bfq_wr_duration(struct bfq_data *bfqd)
 }
 
 static void
-bfq_bfqq_resume_state(struct bfq_queue *bfqq, struct bfq_data *bfqd,
-		      struct bfq_io_cq *bic, bool bfq_already_existing)
+bfq_bfqq_resume_state(struct bfq_queue *bfqq, struct bfq_io_cq *bic)
 {
-	unsigned int old_wr_coeff;
-	bool busy = bfq_already_existing && bfq_bfqq_busy(bfqq);
-
 	if (bic->saved_idle_window)
 		bfq_mark_bfqq_idle_window(bfqq);
 	else
@@ -702,9 +698,6 @@ bfq_bfqq_resume_state(struct bfq_queue *bfqq, struct bfq_data *bfqd,
 	else
 		bfq_clear_bfqq_IO_bound(bfqq);
 
-	if (unlikely(busy))
-		old_wr_coeff = bfqq->wr_coeff;
-
 	bfqq->wr_coeff = bic->saved_wr_coeff;
 	bfqq->wr_start_at_switch_to_srt = bic->saved_wr_start_at_switch_to_srt;
 	BUG_ON(time_is_after_jiffies(bfqq->wr_start_at_switch_to_srt));
@@ -713,8 +706,8 @@ bfq_bfqq_resume_state(struct bfq_queue *bfqq, struct bfq_data *bfqd,
 	BUG_ON(time_is_after_jiffies(bfqq->last_wr_start_finish));
 
 	if (bfqq->wr_coeff > 1 && (bfq_bfqq_in_large_burst(bfqq) ||
-				   time_is_before_jiffies(bfqq->last_wr_start_finish +
-							  bfqq->wr_cur_max_time))) {
+	    time_is_before_jiffies(bfqq->last_wr_start_finish +
+				   bfqq->wr_cur_max_time))) {
 		bfq_log_bfqq(bfqq->bfqd, bfqq,
 			     "resume state: switching off wr (%lu + %lu < %lu)",
 			     bfqq->last_wr_start_finish, bfqq->wr_cur_max_time,
@@ -722,20 +715,8 @@ bfq_bfqq_resume_state(struct bfq_queue *bfqq, struct bfq_data *bfqd,
 
 		bfqq->wr_coeff = 1;
 	}
-
 	/* make sure weight will be updated, however we got here */
 	bfqq->entity.prio_changed = 1;
-
-	if (likely(!busy))
-		return;
-
-	if (old_wr_coeff == 1 && bfqq->wr_coeff > 1) {
-		bfqd->wr_busy_queues++;
-		BUG_ON(bfqd->wr_busy_queues > bfqd->busy_queues);
-	} else if (old_wr_coeff > 1 && bfqq->wr_coeff == 1) {
-		bfqd->wr_busy_queues--;
-		BUG_ON(bfqd->wr_busy_queues < 0);
-	}
 }
 
 static int bfqq_process_refs(struct bfq_queue *bfqq)
@@ -1484,7 +1465,6 @@ static void bfq_add_request(struct request *rq)
 			bfqq->wr_cur_max_time = bfq_wr_duration(bfqd);
 
 			bfqd->wr_busy_queues++;
-			BUG_ON(bfqd->wr_busy_queues > bfqd->busy_queues);
 			bfqq->entity.prio_changed = 1;
 			bfq_log_bfqq(bfqd, bfqq,
 				     "non-idle wrais starting, "
@@ -1724,10 +1704,8 @@ static void bfq_bfqq_end_wr(struct bfq_queue *bfqq)
 {
 	BUG_ON(!bfqq);
 
-	if (bfq_bfqq_busy(bfqq)) {
+	if (bfq_bfqq_busy(bfqq))
 		bfqq->bfqd->wr_busy_queues--;
-		BUG_ON(bfqq->bfqd->wr_busy_queues < 0);
-	}
 	bfqq->wr_coeff = 1;
 	bfqq->wr_cur_max_time = 0;
 	bfqq->last_wr_start_finish = jiffies;
@@ -2106,11 +2084,8 @@ bfq_merge_bfqqs(struct bfq_data *bfqd, struct bfq_io_cq *bic,
 		new_bfqq->last_wr_start_finish = bfqq->last_wr_start_finish;
 		new_bfqq->wr_start_at_switch_to_srt =
 			bfqq->wr_start_at_switch_to_srt;
-		if (bfq_bfqq_busy(new_bfqq)) {
+		if (bfq_bfqq_busy(new_bfqq))
 			bfqd->wr_busy_queues++;
-			BUG_ON(bfqd->wr_busy_queues > bfqd->busy_queues);
-		}
-
 		new_bfqq->entity.prio_changed = 1;
 		bfq_log_bfqq(bfqd, new_bfqq,
 			     "wr start after merge with %d, rais_max_time %u",
@@ -2121,11 +2096,8 @@ bfq_merge_bfqqs(struct bfq_data *bfqd, struct bfq_io_cq *bic,
 	if (bfqq->wr_coeff > 1) { /* bfqq has given its wr to new_bfqq */
 		bfqq->wr_coeff = 1;
 		bfqq->entity.prio_changed = 1;
-		if (bfq_bfqq_busy(bfqq)) {
+		if (bfq_bfqq_busy(bfqq))
 			bfqd->wr_busy_queues--;
-			BUG_ON(bfqd->wr_busy_queues < 0);
-		}
-
 	}
 
 	bfq_log_bfqq(bfqd, new_bfqq, "merge_bfqqs: wr_busy %d",
@@ -4586,7 +4558,7 @@ static int bfq_set_request(struct request_queue *q, struct request *rq,
 	const int is_sync = rq_is_sync(rq);
 	struct bfq_queue *bfqq;
 	unsigned long flags;
-	bool bfqq_already_existing = false, split = false;
+	bool split = false;
 
 	spin_lock_irqsave(q->queue_lock, flags);
 	bfq_check_ioprio_change(bic, bio);
@@ -4645,8 +4617,6 @@ new_queue:
 			split = true;
 			if (!bfqq)
 				goto new_queue;
-			else
-				bfqq_already_existing = true;
 		}
 	}
 
@@ -4672,8 +4642,7 @@ new_queue:
 			 * queue, restore the idle window and the possible
 			 * weight raising period.
 			 */
-			bfq_bfqq_resume_state(bfqq, bfqd, bic,
-					      bfqq_already_existing);
+			bfq_bfqq_resume_state(bfqq, bic);
 		}
 	}
 
