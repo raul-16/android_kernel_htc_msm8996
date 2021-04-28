@@ -908,7 +908,7 @@ void tfa98xx_key2(Tfa98xx_handle_t handle, int lock) {
 enum Tfa98xx_Error tfa98xx_set_mtp(Tfa98xx_handle_t handle, uint16_t value,
 		uint16_t mask)
 {
-	unsigned short mtp_old, mtp_new;
+	unsigned short mtp_old = 0, mtp_new;
 	int loop, status;
 	enum Tfa98xx_Error error;
 

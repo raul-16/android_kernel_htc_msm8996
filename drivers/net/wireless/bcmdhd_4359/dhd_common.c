@@ -2938,7 +2938,7 @@ dhd_pktfilter_offload_set(dhd_pub_t * dhd, char *arg)
 	const char			*str;
 	wl_pkt_filter_t		*pkt_filterp;
 #ifdef PACKET_FILTER2
-	wl_pkt_filter_pattern_listel_t *pattern_listelp;
+	wl_pkt_filter_pattern_listel_t *pattern_listelp = 0;
 	uint32 patterns = 0;
 #endif
 #ifdef PACKET_FILTER2_DEBUG
