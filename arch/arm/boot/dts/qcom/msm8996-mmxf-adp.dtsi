@@ -343,7 +343,7 @@
 	qcom,mdss-dsi-bl-max-level = <4095>;
 	qcom,cont-splash-enabled;
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-	qcom,partial-update-enabled = "single_roi";
+	qcom,partial-update-enabled;
 	qcom,panel-roi-alignment = <720 128 720 64 720 64>;
 };
 
@@ -387,7 +387,7 @@
 	qcom,5v-boost-gpio = <&pmi8994_gpios 8 0>;
 	qcom,cont-splash-enabled;
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-	qcom,partial-update-enabled = "single_roi";
+	qcom,partial-update-enabled;
 	qcom,panel-roi-alignment = <4 4 2 2 20 20>;
 };
 
@@ -533,15 +533,11 @@
 				"msm-pcm-routing", "msm-pcm-dsp-noirq",
 				"msm-pcm-loopback.1";
 		asoc-cpu = <&dai_pri_auxpcm>, <&dai_sec_auxpcm>, <&dai_hdmi>,
-				<&dai_mi2s_sec>, <&dai_mi2s>, <&dai_mi2s_quat>,
+				<&dai_mi2s_sec>, /*<&dai_mi2s>, */<&dai_mi2s_quat>, //HTC_AUD
 				<&afe_pcm_rx>, <&afe_pcm_tx>,
 				<&afe_proxy_rx>, <&afe_proxy_tx>,
 				<&incall_record_rx>, <&incall_record_tx>,
 				<&incall_music_rx>, <&incall_music2_rx>,
-				<&dai_pri_tdm_tx_0>, <&dai_pri_tdm_tx_1>,
-				<&dai_pri_tdm_tx_2>, <&dai_pri_tdm_tx_3>,
-				<&dai_pri_tdm_rx_0>, <&dai_pri_tdm_rx_1>,
-				<&dai_pri_tdm_rx_2>, <&dai_pri_tdm_rx_3>,
 				<&dai_sec_tdm_tx_0>, <&dai_sec_tdm_tx_1>,
 				<&dai_sec_tdm_tx_2>, <&dai_sec_tdm_tx_3>,
 				<&dai_tert_tdm_rx_0>, <&dai_tert_tdm_rx_1>,
@@ -560,10 +556,6 @@
 				"msm-dai-q6-dev.241", "msm-dai-q6-dev.240",
 				"msm-dai-q6-dev.32771", "msm-dai-q6-dev.32772",
 				"msm-dai-q6-dev.32773", "msm-dai-q6-dev.32770",
-				"msm-dai-q6-tdm.36865", "msm-dai-q6-tdm.36867",
-				"msm-dai-q6-tdm.36869", "msm-dai-q6-tdm.36871",
-				"msm-dai-q6-tdm.36864", "msm-dai-q6-tdm.36866",
-				"msm-dai-q6-tdm.36868", "msm-dai-q6-tdm.36870",
 				"msm-dai-q6-tdm.36881", "msm-dai-q6-tdm.36883",
 				"msm-dai-q6-tdm.36885", "msm-dai-q6-tdm.36887",
 				"msm-dai-q6-tdm.36896", "msm-dai-q6-tdm.36898",
@@ -590,9 +582,9 @@
 			qcom,msm-mi2s-tx-lines = <1>;
 			pinctrl-names = "default", "sleep";
 			pinctrl-0 = <&sec_mi2s_active &sec_mi2s_sd0_active
-				&sec_mi2s_sd1_active>;
+				/*&sec_mi2s_sd1_active*/>; //HTC_AUD
 			pinctrl-1 = <&sec_mi2s_sleep &sec_mi2s_sd0_sleep
-				&sec_mi2s_sd1_sleep>;
+				/*&sec_mi2s_sd1_sleep*/>; //HTC_AUD
 		};
 
 		dai_mi2s_quat: qcom,msm-dai-q6-mi2s-quat {
@@ -603,9 +595,22 @@
 	};
 
 	qcom,msm-dai-tdm-tert-rx {
+		qcom,msm-cpudai-tdm-group-num-ports = <5>;
+		qcom,msm-cpudai-tdm-group-port-id = <36896 36898 36900
+							36902 36904>;
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&tert_tdm_dout_active>;
 		pinctrl-1 = <&tert_tdm_dout_sleep>;
+		dai_tert_tdm_rx_4: qcom,msm-dai-q6-tdm-tert-rx-4 {
+			compatible = "qcom,msm-dai-q6-tdm";
+			qcom,msm-cpudai-tdm-dev-id = <36904>;
+			qcom,msm-cpudai-tdm-sync-mode = <1>;
+			qcom,msm-cpudai-tdm-sync-src = <0>;
+			qcom,msm-cpudai-tdm-data-out = <0>;
+			qcom,msm-cpudai-tdm-invert-sync = <0>;
+			qcom,msm-cpudai-tdm-data-delay = <0>;
+			qcom,msm-cpudai-tdm-data-align = <0>;
+		};
 	};
 
 	qcom,msm-dai-tdm-quat-rx {
