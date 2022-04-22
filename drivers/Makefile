@@ -186,4 +186,5 @@ obj-$(CONFIG_SENSORS_SSC)	+= sensors/
 obj-$(CONFIG_ESOC)              += esoc/
 obj-$(CONFIG_TRUSTONIC_TEE)	+= gud/
 obj-y				+= htc_ril/
+obj-$(CONFIG_HTC_LOGLEVEL)      += htc_loglevel/
 obj-$(CONFIG_HTC_MSM_SERIAL)    += htc_msm_serial/
