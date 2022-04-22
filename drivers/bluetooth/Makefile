@@ -25,6 +25,12 @@ obj-$(CONFIG_BT_RTL)		+= btrtl.o
 obj-$(CONFIG_BT_QCA)		+= btqca.o
 obj-$(CONFIG_MSM_BT_POWER)	+= bluetooth-power.o
 
+# HTC_BT
+obj-$(CONFIG_ARCH_MSM8996)  += board-8996-rfkill.o
+obj-$(CONFIG_ARCH_MSM8996)  += htc_bdaddress.o
+obj-$(CONFIG_ARCH_MSM8996)  += bluesleep.o
+# HTC_BT
+
 obj-$(CONFIG_BTFM_SLIM)				+= btfm_slim.o
 obj-$(CONFIG_BTFM_SLIM)				+= btfm_slim_codec.o
 obj-$(CONFIG_BTFM_SLIM_WCN3990)		+= btfm_slim_wcn3990.o
