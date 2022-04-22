@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015,2017 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -23,6 +23,7 @@
 #include <linux/types.h>
 #include <linux/uaccess.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 
 #include <soc/qcom/scm.h>
 #include <soc/qcom/qseecomi.h>
@@ -289,6 +290,9 @@ enum tzdbg_stats_type {
 	TZDBG_QSEE_LOG,
 	TZDBG_HYP_GENERAL,
 	TZDBG_HYP_LOG,
+#ifdef CONFIG_HTC_TZ_LOG
+	TZDBG_HTCLOG,
+#endif
 	TZDBG_STATS_MAX
 };
 
@@ -320,7 +324,28 @@ static struct tzdbg tzdbg = {
 	.stat[TZDBG_QSEE_LOG].name = "qsee_log",
 	.stat[TZDBG_HYP_GENERAL].name = "hyp_general",
 	.stat[TZDBG_HYP_LOG].name = "hyp_log",
+#ifdef CONFIG_HTC_TZ_LOG
+	.stat[TZDBG_HTCLOG].name = "htclog",
+#endif
 };
+
+#ifdef CONFIG_HTC_TZ_LOG
+
+#ifndef MSM_TZLOG_SIZE
+#define MSM_TZLOG_SIZE		(64 * 1024)
+#endif
+
+typedef enum
+{
+	HTC_TZDBG_STATS_TZ = 0,
+	HTC_TZDBG_STATS_HYP,
+	HTC_TZDBG_STATS_QSEE,
+	HTC_TZDBG_STATS_MAX
+} htc_tzdbg_disp_stats_type;
+
+char *htc_tzlog_buffer;
+
+#endif
 
 static struct tzdbg_log_t *g_qsee_log;
 static uint32_t debug_rw_buf_size;
@@ -477,10 +502,10 @@ static int _disp_tz_reset_stats(void)
 
 static int _disp_tz_interrupt_stats(void)
 {
-	int i, j;
+	int i, j, int_info_size;
 	int len = 0;
 	int *num_int;
-	void *ptr;
+	unsigned char *ptr;
 	struct tzdbg_int_t *tzdbg_ptr;
 	struct tzdbg_int_t_tz40 *tzdbg_ptr_tz40;
 
@@ -488,12 +513,14 @@ static int _disp_tz_interrupt_stats(void)
 			(tzdbg.diag_buf->int_info_off - sizeof(uint32_t)));
 	ptr = ((unsigned char *)tzdbg.diag_buf +
 					tzdbg.diag_buf->int_info_off);
+	int_info_size = ((tzdbg.diag_buf->ring_off -
+				tzdbg.diag_buf->int_info_off)/(*num_int));
 
 	pr_info("qsee_version = 0x%x\n", tzdbg.tz_version);
 
 	if (tzdbg.tz_version < QSEE_VERSION_TZ_4_X) {
-		tzdbg_ptr = ptr;
 		for (i = 0; i < (*num_int); i++) {
+			tzdbg_ptr = (struct tzdbg_int_t *)ptr;
 			len += snprintf(tzdbg.disp_buf + len,
 				(debug_rw_buf_size - 1) - len,
 				"     Interrupt Number          : 0x%x\n"
@@ -517,11 +544,11 @@ static int _disp_tz_interrupt_stats(void)
 								__func__);
 				break;
 			}
-			tzdbg_ptr++;
+			ptr += int_info_size;
 		}
 	} else {
-		tzdbg_ptr_tz40 = ptr;
 		for (i = 0; i < (*num_int); i++) {
+			tzdbg_ptr_tz40 = (struct tzdbg_int_t_tz40 *)ptr;
 			len += snprintf(tzdbg.disp_buf + len,
 				(debug_rw_buf_size - 1) - len,
 				"     Interrupt Number          : 0x%x\n"
@@ -545,7 +572,7 @@ static int _disp_tz_interrupt_stats(void)
 								__func__);
 				break;
 			}
-			tzdbg_ptr_tz40++;
+			ptr += int_info_size;
 		}
 	}
 
@@ -721,6 +748,193 @@ static int _disp_tz_log_stats(size_t count)
 				tzdbg.diag_buf->ring_len, count, TZDBG_LOG);
 }
 
+#ifdef CONFIG_HTC_TZ_LOG
+
+static int htc_buffer_offset;
+static int htc_buffer_size;
+
+static int _htc_disp_buffer_log(char __user *buf, size_t count, loff_t *offp)
+{
+	int ret, len = 0;
+
+	if (*offp == htc_buffer_offset) {
+		len = htc_buffer_size - htc_buffer_offset;
+
+		if (count >= len) {
+			ret = copy_to_user(buf, htc_tzlog_buffer + htc_buffer_offset, len);
+			*offp = 0;
+			htc_buffer_offset = 0;
+			htc_buffer_size = 0;
+		} else {
+			len = count;
+			ret = copy_to_user(buf, htc_tzlog_buffer + htc_buffer_offset, len);
+			htc_buffer_offset += count;
+			*offp = htc_buffer_offset;
+		}
+	}
+
+	return len;
+}
+
+static int _htc_disp_tz_log(char __user *buf, size_t count, loff_t *offp)
+{
+	int len;
+
+	if (*offp == 0)
+	{
+		struct tzdbg_log_t *tzbsp_log;
+
+		len = snprintf(htc_tzlog_buffer, (MSM_TZLOG_SIZE - 1),
+				"\r\n----- tz log -----\r\n");
+
+		tzbsp_log = (struct tzdbg_log_t *)((unsigned char *)tzdbg.diag_buf +
+					tzdbg.diag_buf->ring_off -
+					offsetof(struct tzdbg_log_t, log_buf));
+
+		if (tzbsp_log->log_pos.wrap) {
+			memcpy(htc_tzlog_buffer + len, tzbsp_log->log_buf + tzbsp_log->log_pos.offset,
+					tzdbg.diag_buf->ring_len - tzbsp_log->log_pos.offset);
+			memcpy(htc_tzlog_buffer + len + tzdbg.diag_buf->ring_len - tzbsp_log->log_pos.offset,
+					tzbsp_log->log_buf, tzbsp_log->log_pos.offset);
+			len += tzdbg.diag_buf->ring_len;
+		} else {
+			memcpy(htc_tzlog_buffer + len, tzbsp_log->log_buf, tzbsp_log->log_pos.offset);
+			len += tzbsp_log->log_pos.offset;
+		}
+
+		htc_buffer_offset = 0;
+		htc_buffer_size = len;
+	}
+
+	len = _htc_disp_buffer_log(buf, count, offp);
+
+	return len;
+}
+
+static int _htc_disp_hyp_log(char __user *buf, size_t count, loff_t *offp)
+{
+	int len;
+
+	if (*offp == 0)
+	{
+		struct hypdbg_t *hyp = tzdbg.hyp_diag_buf;
+		uint8_t *log_buf;
+
+		len = snprintf(htc_tzlog_buffer, (MSM_TZLOG_SIZE - 1),
+				"\r\n----- hyp log -----\r\n");
+
+		log_buf = (uint8_t *)((unsigned char *)tzdbg.hyp_diag_buf +
+					tzdbg.hyp_diag_buf->ring_off);
+
+		if (hyp->log_pos.wrap) {
+			memcpy(htc_tzlog_buffer + len, log_buf + hyp->log_pos.offset,
+					hyp->log_len - hyp->log_pos.offset);
+			memcpy(htc_tzlog_buffer + len + hyp->log_len - hyp->log_pos.offset,
+					log_buf, hyp->log_pos.offset);
+			len += hyp->log_len;
+		} else {
+			memcpy(htc_tzlog_buffer + len, log_buf, hyp->log_pos.offset);
+			len += hyp->log_pos.offset;
+		}
+
+		htc_buffer_offset = 0;
+		htc_buffer_size = len;
+	}
+
+	len = _htc_disp_buffer_log(buf, count, offp);
+
+	return len;
+}
+
+
+static int _htc_disp_qsee_log(char __user *buf, size_t count, loff_t *offp)
+{
+	int len;
+
+	if (*offp == 0)
+	{
+		uint8_t *log_buf;
+		int log_len;
+
+		len = snprintf(htc_tzlog_buffer, (MSM_TZLOG_SIZE - 1),
+				"\r\n----- qsee log -----\r\n");
+
+		log_buf = (uint8_t *)g_qsee_log->log_buf;
+		log_len = QSEE_LOG_BUF_SIZE - sizeof(struct tzdbg_log_pos_t);
+
+		if (g_qsee_log->log_pos.wrap) {
+			memcpy(htc_tzlog_buffer + len, log_buf + g_qsee_log->log_pos.offset,
+					log_len - g_qsee_log->log_pos.offset);
+			memcpy(htc_tzlog_buffer + len + log_len - g_qsee_log->log_pos.offset,
+					log_buf, g_qsee_log->log_pos.offset);
+			len += log_len;
+		} else {
+			memcpy(htc_tzlog_buffer + len, log_buf, g_qsee_log->log_pos.offset);
+			len += g_qsee_log->log_pos.offset;
+		}
+
+		htc_buffer_offset = 0;
+		htc_buffer_size = len;
+	}
+
+	len = _htc_disp_buffer_log(buf, count, offp);
+
+	return len;
+}
+
+static int __htc_disp_log_end(void)
+{
+	int len;
+
+	len = snprintf(htc_tzlog_buffer, (MSM_TZLOG_SIZE - 1),
+		"\r\n--------------------\r\n\r\n");
+
+    return len;
+}
+
+static int _disp_tz_htc_log_stats(char __user *buf, size_t count, loff_t *offp)
+{
+	static htc_tzdbg_disp_stats_type flag = HTC_TZDBG_STATS_TZ;
+	int len, ret;
+
+	if (!htc_tzlog_buffer)
+		return 0;
+
+	switch (flag) {
+		case HTC_TZDBG_STATS_TZ:
+			len = _htc_disp_tz_log(buf, count, offp);
+			if (*offp == 0)
+				flag++;
+			break;
+
+		case HTC_TZDBG_STATS_HYP:
+			len = _htc_disp_hyp_log(buf, count, offp);
+			if (*offp == 0)
+				flag++;
+			break;
+
+		case HTC_TZDBG_STATS_QSEE:
+			len = _htc_disp_qsee_log(buf, count, offp);
+			if (*offp == 0)
+				flag++;
+            break;
+
+		case HTC_TZDBG_STATS_MAX:
+			len = __htc_disp_log_end();
+			*offp += len;
+			flag++;
+			ret = copy_to_user(buf, htc_tzlog_buffer, len);
+			break;
+
+		default:
+			flag = 0;
+			return 0;
+	}
+
+	return len;
+}
+#endif
+
 static int _disp_hyp_log_stats(size_t count)
 {
 	static struct hypdbg_log_pos_t log_start = {0};
@@ -830,6 +1044,10 @@ static ssize_t tzdbgfs_read(struct file *file, char __user *buf,
 		len = _disp_hyp_log_stats(count);
 		*offp = 0;
 		break;
+#ifdef CONFIG_HTC_TZ_LOG
+	case TZDBG_HTCLOG:
+		return _disp_tz_htc_log_stats(buf, count, offp);
+#endif
 	default:
 		break;
 	}
@@ -957,6 +1175,12 @@ static int  tzdbgfs_init(struct platform_device *pdev)
 
 	for (i = 0; i < TZDBG_STATS_MAX; i++) {
 		tzdbg.debug_tz[i] = i;
+		/* Do not create hyp entries in debugfs when hyplog flag is not
+		   enabled in dtsi. */
+		if (!tzdbg.is_hyplog_enabled &&
+		    ((TZDBG_HYP_LOG == tzdbg.debug_tz[i]) ||
+		     (TZDBG_HYP_GENERAL == tzdbg.debug_tz[i])))
+			continue;
 		dent = debugfs_create_file(tzdbg.stat[i].name,
 				S_IRUGO, dent_dir,
 				&tzdbg.debug_tz[i], &tzdbg_fops);
@@ -1151,6 +1375,13 @@ static int tz_log_probe(struct platform_device *pdev)
 	}
 
 	tzdbg.diag_buf = (struct tzdbg_t *)ptr;
+
+#ifdef CONFIG_HTC_TZ_LOG
+	htc_tzlog_buffer = kzalloc(MSM_TZLOG_SIZE, GFP_KERNEL);
+	if (!htc_tzlog_buffer) {
+		pr_err("%s: Can't Allocate memory: htc_tzlog_buffer\n", __func__);
+	}
+#endif
 
 	if (tzdbgfs_init(pdev))
 		goto err;
