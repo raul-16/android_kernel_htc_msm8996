@@ -3,6 +3,7 @@
  *
  * Copyright (C) 1995-2001 Russell King
  * Copyright (C) 2012 ARM Ltd.
+ * Copyright (C) 2017 Broadcom Corporation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -91,6 +92,13 @@ static struct resource mem_res[] = {
 		.end = 0,
 		.flags = IORESOURCE_MEM
 	}
+};
+
+static struct platform_device bcm_ldisc_device = {
+    .name = "bcm_ldisc",
+    .id = -1,
+    .dev = {
+    },
 };
 
 #define kernel_code mem_res[0]
@@ -392,6 +400,7 @@ static int __init arm64_device_init(void)
 		of_iommu_init();
 		of_platform_populate(NULL, of_default_bus_match_table,
 				     NULL, NULL);
+		platform_device_register(&bcm_ldisc_device);
 	} else if (acpi_disabled) {
 		pr_crit("Device tree not populated\n");
 	}

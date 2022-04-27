@@ -291,6 +291,16 @@ static void usb_read_done_work_fn(struct work_struct *work)
 
 	req = ch->read_ptr;
 	ch->read_cnt++;
+/*++ 2015/10/26, USB Team, PCN00028 ++*/
+#if DIAG_XPST && !defined(CONFIG_DIAGFWD_BRIDGE_CODE)
+       if (driver->nohdlc) {
+               req->buf = ch->read_buf;
+               req->length = USB_MAX_OUT_BUF;
+               usb_diag_read(ch->hdl, req);
+               return;
+       }
+#endif
+/*-- 2015/10/26, USB Team, PCN00028 --*/
 
 	if (ch->ops && ch->ops->read_done && req->status >= 0)
 		ch->ops->read_done(req->buf, req->actual, ch->ctxt);

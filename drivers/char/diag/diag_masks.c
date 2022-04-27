@@ -103,7 +103,7 @@ static void diag_send_log_mask_update(uint8_t peripheral, int equip_id)
 
 	if (!driver->diagfwd_cntl[peripheral] ||
 	    !driver->diagfwd_cntl[peripheral]->ch_open) {
-		pr_debug("diag: In %s, control channel is not open, p: %d\n",
+		DIAG_DBUG("diag: In %s, control channel is not open, p: %d\n",
 			 __func__, peripheral);
 		return;
 	}
@@ -153,7 +153,7 @@ static void diag_send_log_mask_update(uint8_t peripheral, int equip_id)
 		send_once = 0;
 		break;
 	default:
-		pr_debug("diag: In %s, invalid log_mask status\n", __func__);
+		DIAG_DBUG("diag: In %s, invalid log_mask status\n", __func__);
 		return;
 	}
 
@@ -221,7 +221,7 @@ static void diag_send_event_mask_update(uint8_t peripheral)
 	int temp_len = 0;
 
 	if (num_bytes <= 0 || num_bytes > driver->event_mask_size) {
-		pr_debug("diag: In %s, invalid event mask length %d\n",
+		DIAG_DBUG("diag: In %s, invalid event mask length %d\n",
 			 __func__, num_bytes);
 		return;
 	}
@@ -231,7 +231,7 @@ static void diag_send_event_mask_update(uint8_t peripheral)
 
 	if (!driver->diagfwd_cntl[peripheral] ||
 	    !driver->diagfwd_cntl[peripheral]->ch_open) {
-		pr_debug("diag: In %s, control channel is not open, p: %d\n",
+		DIAG_DBUG("diag: In %s, control channel is not open, p: %d\n",
 			 __func__, peripheral);
 		return;
 	}
@@ -292,7 +292,7 @@ static void diag_send_event_mask_update(uint8_t peripheral)
 		write_len += num_bytes;
 		break;
 	default:
-		pr_debug("diag: In %s, invalid status %d\n", __func__,
+		DIAG_DBUG("diag: In %s, invalid status %d\n", __func__,
 			 mask_info->status);
 		goto err;
 	}
@@ -327,7 +327,7 @@ static void diag_send_msg_mask_update(uint8_t peripheral, int first, int last)
 
 	if (!driver->diagfwd_cntl[peripheral] ||
 	    !driver->diagfwd_cntl[peripheral]->ch_open) {
-		pr_debug("diag: In %s, control channel is not open, p: %d\n",
+		DIAG_DBUG("diag: In %s, control channel is not open, p: %d\n",
 			 __func__, peripheral);
 		return;
 	}
@@ -374,7 +374,7 @@ static void diag_send_msg_mask_update(uint8_t peripheral, int first, int last)
 	case DIAG_CTRL_MASK_VALID:
 		break;
 	default:
-		pr_debug("diag: In %s, invalid status: %d\n", __func__,
+		DIAG_DBUG("diag: In %s, invalid status: %d\n", __func__,
 			 mask_info->status);
 		goto err;
 	}
@@ -404,7 +404,7 @@ static void diag_send_msg_mask_update(uint8_t peripheral, int first, int last)
 			} else {
 				mask_info->update_buf = temp;
 				mask_info->update_buf_len = temp_len;
-				pr_debug("diag: In %s, successfully reallocated msg_mask update buffer to len: %d\n",
+				DIAG_DBUG("diag: In %s, successfully reallocated msg_mask update buffer to len: %d\n",
 					 __func__, mask_info->update_buf_len);
 			}
 		} else if (mask_info->status == DIAG_CTRL_MASK_ALL_ENABLED) {
