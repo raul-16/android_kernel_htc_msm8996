@@ -1510,6 +1510,9 @@ static int msm_lsm_ioctl_compat(struct snd_pcm_substream *substream,
 				"%s: %s: not supported if using topology\n",
 				__func__, "SET_PARAMS_32");
 			err = -EINVAL;
+/* HTC_AUD_START */
+			goto done;
+/* HTC_AUD_END */
 		}
 
 		if (copy_from_user(&det_params32, arg,

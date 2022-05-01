@@ -29,6 +29,16 @@
 #include <linux/qdsp6v2/apr_tal.h>
 
 #define WAKELOCK_TIMEOUT	5000
+
+//HTC_AUD_START
+#undef pr_debug
+#undef pr_info
+#undef pr_err
+#define pr_debug(fmt, ...) pr_aud_debug(fmt, ##__VA_ARGS__)
+#define pr_info(fmt, ...) pr_aud_info(fmt, ##__VA_ARGS__)
+#define pr_err(fmt, ...) pr_aud_err(fmt, ##__VA_ARGS__)
+//HTC_AUD_END
+
 enum {
 	AFE_COMMON_RX_CAL = 0,
 	AFE_COMMON_TX_CAL,

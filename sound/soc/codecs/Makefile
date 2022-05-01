@@ -215,6 +215,11 @@ snd-soc-max9877-objs := max9877.o
 snd-soc-tpa6130a2-objs := tpa6130a2.o
 snd-soc-tas2552-objs := tas2552.o
 
+#HTC_AUD_START
+snd-soc-rt5503-objs := rt5503.o rt5503-regmap.o
+obj-$(CONFIG_SND_SOC_RT5503)	+= snd-soc-rt5503.o
+#HTC_AUD_END
+
 obj-$(CONFIG_SND_SOC_88PM860X)	+= snd-soc-88pm860x.o
 obj-$(CONFIG_SND_SOC_AB8500_CODEC)	+= snd-soc-ab8500-codec.o
 obj-$(CONFIG_SND_SOC_AC97_CODEC)	+= snd-soc-ac97.o
@@ -430,6 +435,10 @@ obj-y += msm_sdw/
 
 # SmartAmp
 obj-$(CONFIG_SND_SOC_TFA9891)	+= tfa9891/
+
+#HTC_AUD_START
+obj-$(CONFIG_SND_SOC_TFA98XX) += tfa/
+#HTC_AUD_END
 
 # TODO: remove me b/62058353
 subdir-ccflags-y += \

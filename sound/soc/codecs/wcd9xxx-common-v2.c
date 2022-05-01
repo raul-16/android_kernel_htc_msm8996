@@ -600,7 +600,7 @@ static void wcd_clsh_set_hph_mode(struct snd_soc_codec *codec,
 				  int mode)
 {
 	u8 val = 0;
-	u8 gain = 0;
+	u8 gain = DAC_GAIN_0DB; //HTC_AUD klockwork
 	u8 res_val = VREF_FILT_R_0OHM;
 	u8 ipeak = DELTA_I_50MA;
 
@@ -742,7 +742,7 @@ static void wcd_clsh_state_hph_ear(struct snd_soc_codec *codec,
 				   struct wcd_clsh_cdc_data *clsh_d,
 				   u8 req_state, bool is_enable, int mode)
 {
-	int hph_mode = 0;
+	int hph_mode = CLS_NONE; //HTC_AUD klockwork
 
 	dev_dbg(codec->dev, "%s: mode: %s, %s\n", __func__, mode_to_str(mode),
 		is_enable ? "enable" : "disable");
@@ -888,7 +888,7 @@ static void wcd_clsh_state_hph_lo(struct snd_soc_codec *codec,
 				  struct wcd_clsh_cdc_data *clsh_d,
 				  u8 req_state, bool is_enable, int mode)
 {
-	int hph_mode = 0;
+	int hph_mode = CLS_NONE; //HTC_AUD klockwork
 
 	dev_dbg(codec->dev, "%s: mode: %s, %s\n", __func__, mode_to_str(mode),
 		is_enable ? "enable" : "disable");

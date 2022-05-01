@@ -16,13 +16,22 @@
 #include <linux/stringify.h>
 #include <linux/power_supply.h>
 #include "wcdcal-hwdep.h"
+/* HTC_AUD_START */
+#ifdef CONFIG_USE_AS_HS
+#include <linux/switch.h>
+#endif
+/* HTC_AUD_END */
 
 #define TOMBAK_MBHC_NC	0
 #define TOMBAK_MBHC_NO	1
 #define WCD_MBHC_DEF_BUTTONS 8
 #define WCD_MBHC_KEYCODE_NUM 8
 #define WCD_MBHC_USLEEP_RANGE_MARGIN_US 100
+#ifdef CONFIG_USE_AS_HS
+#define WCD_MBHC_THR_HS_MICB_MV  2850
+#else
 #define WCD_MBHC_THR_HS_MICB_MV  2700
+#endif
 /* z value defined in Ohms */
 #define WCD_MONO_HS_MIN_THR	2
 #define WCD_MBHC_STRINGIFY(s)  __stringify(s)
@@ -64,9 +73,6 @@ enum wcd_mbhc_register_function {
 	WCD_MBHC_HPH_PA_EN,
 	WCD_MBHC_SWCH_LEVEL_REMOVE,
 	WCD_MBHC_PULLDOWN_CTRL,
-	WCD_MBHC_ANC_DET_EN,
-	WCD_MBHC_FSM_STATUS,
-	WCD_MBHC_MUX_CTL,
 	WCD_MBHC_HPHL_OCP_DET_EN,
 	WCD_MBHC_HPHR_OCP_DET_EN,
 	WCD_MBHC_HPHL_OCP_STATUS,
@@ -81,7 +87,13 @@ enum wcd_mbhc_plug_type {
 	MBHC_PLUG_TYPE_HEADPHONE,
 	MBHC_PLUG_TYPE_HIGH_HPH,
 	MBHC_PLUG_TYPE_GND_MIC_SWAP,
-	MBHC_PLUG_TYPE_ANC_HEADPHONE,
+//HTC_AUD_START
+#ifdef CONFIG_USE_AS_HS
+	MBHC_PLUG_TYPE_AS_HEADSET,
+	MBHC_PLUG_TYPE_35MM_HEADSET,
+	MBHC_PLUG_TYPE_25MM_HEADSET,
+//HTC_AUD_END
+#endif
 };
 
 enum pa_dac_ack_flags {
@@ -146,6 +158,26 @@ enum wcd_mbhc_event_state {
 	WCD_MBHC_EVENT_PA_HPHL,
 	WCD_MBHC_EVENT_PA_HPHR,
 };
+
+//HTC_AUD_START
+#ifdef CONFIG_USE_AS_HS
+enum htc_id_type {
+	TYPEC_ID1,
+	TYPEC_ID2,
+	TYPEC_POSITION,
+	TYPEC_ID_MAX,
+};
+
+enum htc_switch_type {
+	HEADSET_S3_0,
+	HEADSET_S3_1,
+	HEADSET_S4,
+	HEADSET_S5,
+	HEADSET_SWITCH_MAX,
+};
+#endif
+//HTC_AUD_END
+
 struct wcd_mbhc_general_cfg {
 	u8 t_ldoh;
 	u8 t_bg_fast_settle;
@@ -264,6 +296,23 @@ struct usbc_ana_audio_config {
 	struct device_node *usbc_force_gpio_p; /* used by pinctrl API */
 };
 
+//HTC_AUD_START
+#ifdef CONFIG_USE_AS_HS
+struct htc_headset_config {
+	unsigned int id_gpio[TYPEC_ID_MAX];
+	unsigned int switch_gpio[HEADSET_SWITCH_MAX];
+	unsigned int ext_micbias;
+	unsigned int adc_channel;
+	int (*get_adc_value) (int *, unsigned int);
+	unsigned int adc_35mm_min;
+	unsigned int adc_35mm_max;
+	unsigned int adc_25mm_min;
+	unsigned int adc_25mm_max;
+	bool htc_headset_init;
+};
+#endif
+//HTC_AUD_END
+
 struct wcd_mbhc_config {
 	bool read_fw_bin;
 	void *calibration;
@@ -276,8 +325,12 @@ struct wcd_mbhc_config {
 	uint32_t linein_th;
 	bool moisture_en;
 	int mbhc_micbias;
-	int anc_micbias;
-	bool enable_anc_mic_detect;
+//HTC_AUD_START
+#ifdef CONFIG_USE_AS_HS
+	struct htc_headset_config htc_headset_cfg;
+	int micb_mv;
+#endif
+//HTC_AUD_END
 	u32 enable_usbc_analog;
 	struct usbc_ana_audio_config usbc_analog_cfg;
 };
@@ -382,7 +435,7 @@ struct wcd_mbhc_cb {
 			    int num_btn, bool);
 	void (*hph_pull_up_control)(struct snd_soc_codec *,
 				    enum mbhc_hs_pullup_iref);
-	int (*mbhc_micbias_control)(struct snd_soc_codec *, int, int req);
+	int (*mbhc_micbias_control)(struct snd_soc_codec *, int req);
 	void (*mbhc_micb_ramp_control)(struct snd_soc_codec *, bool);
 	void (*skip_imped_detect)(struct snd_soc_codec *);
 	bool (*extn_use_mb)(struct snd_soc_codec *);
@@ -425,6 +478,7 @@ struct wcd_mbhc {
 	bool is_extn_cable;
 	bool skip_imped_detection;
 	bool is_btn_already_regd;
+	bool swap_detect; //HTC_AUD - disable cross conection
 
 	struct snd_soc_codec *codec;
 	/* Work to perform MBHC Firmware Read */
@@ -463,6 +517,19 @@ struct wcd_mbhc {
 	struct mutex hphr_pa_lock;
 
 	unsigned long intr_status;
+/* HTC_AUD_START */
+	/* Add attribute on sysfs for debugging */
+	struct class *htc_accessory_class;
+	struct device *headset_dev;
+	struct device *debug_dev;
+	u16 debug_reg[50];
+	int debug_reg_count;
+	int pcb_id; //WA for semi device due to mbhc is not ready
+	int bom_id; //WA for semi device due to mbhc is not ready
+#ifdef CONFIG_USE_AS_HS
+	struct switch_dev unsupported_type;
+#endif
+/* HTC_AUD_END */
 	bool is_hph_ocp_pending;
 
 	bool usbc_force_pr_mode;
@@ -523,6 +590,16 @@ struct wcd_mbhc {
 	sizeof(struct wcd_mbhc_imped_detect_cfg) + \
 	(cfg_ptr->_n_rload * \
 	(sizeof(cfg_ptr->_rload[0]) + sizeof(cfg_ptr->_alpha[0]))))
+
+//HTC_AUD_START
+#define DEVICE_HEADSET_ATTR(_name, _mode, _show, _store) \
+	struct device_attribute dev_attr_headset_##_name = \
+	__ATTR(_name, _mode, _show, _store)
+
+#define DEVICE_ACCESSORY_ATTR(_name, _mode, _show, _store) \
+	struct device_attribute dev_attr_##_name = \
+	__ATTR(flag, _mode, _show, _store)
+//HTC_AUD_END
 
 #ifdef CONFIG_SND_SOC_WCD_MBHC
 int wcd_mbhc_set_keycode(struct wcd_mbhc *mbhc);

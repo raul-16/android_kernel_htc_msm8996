@@ -49,6 +49,7 @@
 
 #define LPASS_BE_MI2S_RX "MI2S_RX"
 #define LPASS_BE_MI2S_TX "MI2S_TX"
+#define LPASS_BE_QUAT_MI2S "QUAT_MI2S" /* HTC_AUD */
 #define LPASS_BE_QUAT_MI2S_RX "QUAT_MI2S_RX"
 #define LPASS_BE_QUAT_MI2S_TX "QUAT_MI2S_TX"
 #define LPASS_BE_SEC_MI2S_RX "SEC_MI2S_RX"
@@ -279,6 +280,10 @@ enum {
 	MSM_BACKEND_DAI_AUDIO_I2S_RX,
 	MSM_BACKEND_DAI_SEC_AUXPCM_RX,
 	MSM_BACKEND_DAI_SEC_AUXPCM_TX,
+	MSM_BACKEND_DAI_TERT_AUXPCM_RX,
+	MSM_BACKEND_DAI_TERT_AUXPCM_TX,
+	MSM_BACKEND_DAI_QUAT_AUXPCM_RX,
+	MSM_BACKEND_DAI_QUAT_AUXPCM_TX,
 	MSM_BACKEND_DAI_SPDIF_RX,
 	MSM_BACKEND_DAI_SECONDARY_MI2S_RX_SD1,
 	MSM_BACKEND_DAI_QUINARY_MI2S_RX,
@@ -469,6 +474,35 @@ struct msm_pcm_stream_app_type_cfg {
 	int acdb_dev_id;
 	int sample_rate;
 };
+
+/* HTC_AUD_START */
+struct htc_adm_effect_s {
+	u16 used;
+	u16 port_id;
+	uint32_t copp_id;
+	uint32_t payload_size;
+	void *payload;
+};
+
+enum HTC_ADM_EFFECT_ID {
+	HTC_ADM_EFFECT_ADAPTIVEAUDIO_DATA1 = 0,
+	HTC_ADM_EFFECT_ADAPTIVEAUDIO_DATA2,
+	HTC_ADM_EFFECT_ONEDOTONE,
+	HTC_ADM_EFFECT_ONEDOTONE_MUTE,
+	HTC_ADM_EFFECT_ONEDOTONE_RAMPING,
+	HTC_ADM_EFFECT_ONEDOTONE_LIMITER,
+#ifdef CONFIG_USE_AS_HS
+	HTC_ADM_EFFECT_AS_DATA1,/* as_conf_left_im */
+	HTC_ADM_EFFECT_AS_DATA2,/* as_conf_left_re */
+	HTC_ADM_EFFECT_AS_DATA3,/* as_conf_right_im */
+	HTC_ADM_EFFECT_AS_DATA4,/* as_conf_right_re */
+	HTC_ADM_EFFECT_AS_DATA5,/* as_limiter_conf */
+	HTC_ADM_EFFECT_AS_DATA6,/* as_limiter_enable */
+	HTC_ADM_EFFECT_AS_DATA7,/* as_enable */
+#endif
+	HTC_ADM_EFFECT_MAX,
+};
+/* HTC_AUD_END */
 
 /* dai_id: front-end ID,
  * dspst_id:  DSP audio stream ID

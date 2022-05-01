@@ -16,6 +16,12 @@ obj-$(CONFIG_SND_SOC_CPE) += snd-soc-cpe.o
 snd-soc-msm8996-objs := msm8996.o apq8096-auto.o
 obj-$(CONFIG_SND_SOC_MSM8996) += snd-soc-msm8996.o
 
+#HTC_AUD_START
+obj-$(CONFIG_I2C_RT5503) += rt5503-i2c.o rt5503-pdev.o rt5503-regmap.o
+
+obj-$(CONFIG_SND_HTC_ACOUSTIC_ALSA) += htc_acoustic_alsa.o
+#HTC_AUD_END
+
 # for MSM8998 sound card driver
 snd-soc-msm8998-objs := msm8998.o
 obj-$(CONFIG_SND_SOC_MSM8998) += snd-soc-msm8998.o

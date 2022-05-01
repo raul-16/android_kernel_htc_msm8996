@@ -605,6 +605,12 @@ int snd_usb_enable_audio_stream(struct snd_usb_substream *subs,
 			return ret;
 
 		iface = usb_ifnum_to_if(subs->dev, subs->cur_audiofmt->iface);
+/* HTC_AUD_START - Klocwork */
+		if (iface == NULL) {
+			dev_err(&subs->dev->dev, "failed to get interface\n");
+			return -EINVAL;
+		}
+/* HTC_AUD_END */
 		alts = &iface->altsetting[subs->cur_audiofmt->altset_idx];
 		ret = snd_usb_init_sample_rate(subs->stream->chip,
 					       subs->cur_audiofmt->iface,
