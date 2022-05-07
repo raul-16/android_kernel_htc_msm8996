@@ -530,7 +530,8 @@ static int lmh_get_sensor_devicetree(struct platform_device *pdev)
 	}
 
 	if (!lmh_data->trim_err_disable) {
-		lmh_intr_base = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+		lmh_intr_base = platform_get_resource_byname(pdev,
+					IORESOURCE_MEM, "lmh_interrupt_status");
 		if (!lmh_intr_base) {
 			ret = -EINVAL;
 			pr_err("Error getting reg MEM for LMH.\n");
