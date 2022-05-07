@@ -336,6 +336,8 @@
 
 #define KEY_MICMUTE		248	/* Mute / unmute the microphone */
 #define KEY_APP_SWITCH		249	/* key for list app*/
+#define HALL_N_POLE             251     /* HALL Sensor N pole*/
+#define HALL_S_POLE             252     /* HALL Sensor S pole*/
 
 /* Code 255 is reserved for special needs of AT keyboard driver */
 
@@ -716,6 +718,9 @@
  * We define here ABS_RESERVED so userspace can rely on it and detect
  * the situation described above.
  */
+#define ABS_MT_POSITION     0x2a    /* Group a set of X and Y */
+#define ABS_MT_AMPLITUDE    0x2b    /* Group a set of Z and W */
+
 #define ABS_RESERVED		0x2e
 
 #define ABS_MT_SLOT		0x2f	/* MT slot being modified */
@@ -733,7 +738,7 @@
 #define ABS_MT_DISTANCE		0x3b	/* Contact hover distance */
 #define ABS_MT_TOOL_X		0x3c	/* Center X tool position */
 #define ABS_MT_TOOL_Y		0x3d	/* Center Y tool position */
-
+#define ABS_MT_GLOVE		0x3e
 
 #define ABS_MAX			0x3f
 #define ABS_CNT			(ABS_MAX+1)

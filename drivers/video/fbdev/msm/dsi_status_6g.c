@@ -53,6 +53,18 @@ static bool mdss_check_te_status(struct mdss_dsi_ctrl_pdata *ctrl_pdata,
 }
 
 /*
+ * Return true if Vendor ESD check is fine
+ */
+static bool mdss_check_vendor_status(struct mdss_dsi_ctrl_pdata *ctrl_pdata,
+		struct dsi_status_data *pstatus_data)
+{
+	bool ret = !pstatus_data->vendor_esd_error;
+	pstatus_data->vendor_esd_error = false;
+
+	return ret;
+}
+
+/*
  * mdss_check_dsi_ctrl_status() - Check MDP5 DSI controller status periodically.
  * @work     : dsi controller status data
  * @interval : duration in milliseconds to schedule work queue
@@ -88,7 +100,7 @@ void mdss_check_dsi_ctrl_status(struct work_struct *work, uint32_t interval)
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 							panel_data);
 	if (!ctrl_pdata || (!ctrl_pdata->check_status &&
-		(ctrl_pdata->status_mode != ESD_TE))) {
+		(ctrl_pdata->status_mode != ESD_TE && ctrl_pdata->status_mode != ESD_TE_V2 && ctrl_pdata->status_mode != ESD_VENDOR))) {
 		pr_err("%s: DSI ctrl or status_check callback not available\n",
 								__func__);
 		return;
@@ -110,6 +122,9 @@ void mdss_check_dsi_ctrl_status(struct work_struct *work, uint32_t interval)
 		return;
 	}
 
+	if (!mdss_check_vendor_status(ctrl_pdata, pstatus_data))
+		goto status_dead;
+
 	if (ctrl_pdata->status_mode == ESD_TE) {
 		if (mdss_check_te_status(ctrl_pdata, pstatus_data, interval))
 			return;
@@ -117,6 +132,16 @@ void mdss_check_dsi_ctrl_status(struct work_struct *work, uint32_t interval)
 			goto status_dead;
 	}
 
+	if (ctrl_pdata->status_mode == ESD_VENDOR) {
+		if (pdata->panel_info.panel_force_dead) {
+			pr_info("%s: ESD_VENDOR force_dead=%d\n", __func__, pdata->panel_info.panel_force_dead);
+			pdata->panel_info.panel_force_dead--;
+			if (!pdata->panel_info.panel_force_dead)
+				goto status_dead;
+		}
+
+		return;
+	}
 
 	/*
 	 * TODO: Because mdss_dsi_cmd_mdp_busy has made sure DMA to
