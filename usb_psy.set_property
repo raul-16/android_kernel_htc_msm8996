@@ -1,0 +1,805 @@
+drivers/usb/dwc3/dwc3-msm.c:147:/* Input bits to state machine (mdwc->inputs) */
+drivers/usb/dwc3/dwc3-msm.c:401:	reg = dwc3_msm_read_reg(mdwc->base, USB3_HCSPARAMS1);
+drivers/usb/dwc3/dwc3-msm.c:405:		reg = dwc3_msm_read_reg(mdwc->base, USB3_PORTSC + i*0x10);
+drivers/usb/dwc3/dwc3-msm.c:418:	reg = dwc3_msm_read_reg(mdwc->base, USB3_HCSPARAMS1);
+drivers/usb/dwc3/dwc3-msm.c:422:		reg = dwc3_msm_read_reg(mdwc->base, USB3_PORTSC + i*0x10);
+drivers/usb/dwc3/dwc3-msm.c:434:	speed = dwc3_msm_read_reg(mdwc->base, DWC3_DSTS) & DWC3_DSTS_CONNECTSPD;
+drivers/usb/dwc3/dwc3-msm.c:440:	if (mdwc->in_host_mode)
+drivers/usb/dwc3/dwc3-msm.c:450:	dev_dbg(mdwc->dev, "%s\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:451:	dwc3_dbm_disable_update_xfer(mdwc->dbm, usb_ep);
+drivers/usb/dwc3/dwc3-msm.c:474:	dev_dbg(mdwc->dev, "%s\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:476:	return	dbm_data_fifo_config(mdwc->dbm, dep->number, addr, size,
+drivers/usb/dwc3/dwc3-msm.c:500:	list_for_each_entry(req_complete, &mdwc->req_complete_list, list_item) {
+drivers/usb/dwc3/dwc3-msm.c:519:	dbm_ep_unconfig(mdwc->dbm, dep->number);
+drivers/usb/dwc3/dwc3-msm.c:527:	if (0 == dbm_get_num_of_eps_configured(mdwc->dbm) &&
+drivers/usb/dwc3/dwc3-msm.c:528:		!dbm_reset_ep_after_lpm(mdwc->dbm))
+drivers/usb/dwc3/dwc3-msm.c:529:			dbm_event_buffer_config(mdwc->dbm, 0, 0, 0);
+drivers/usb/dwc3/dwc3-msm.c:557:	dev_dbg(mdwc->dev, "Resetting dbm endpoint %d\n", dep->number);
+drivers/usb/dwc3/dwc3-msm.c:560:	ret = dbm_ep_soft_reset(mdwc->dbm, dep->number, true);
+drivers/usb/dwc3/dwc3-msm.c:562:		dev_err(mdwc->dev, "%s: failed to assert dbm ep reset\n",
+drivers/usb/dwc3/dwc3-msm.c:573:	if (dbm_get_num_of_eps_configured(mdwc->dbm) > 1)
+drivers/usb/dwc3/dwc3-msm.c:577:	ret = dbm_ep_soft_reset(mdwc->dbm, dep->number, false);
+drivers/usb/dwc3/dwc3-msm.c:579:		dev_err(mdwc->dev, "%s: failed to deassert dbm ep reset\n",
+drivers/usb/dwc3/dwc3-msm.c:724:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:731:	if (!mdwc->original_ep_ops[dep->number]) {
+drivers/usb/dwc3/dwc3-msm.c:732:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:740:		dev_err(mdwc->dev, "%s: request is NULL\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:746:		dev_err(mdwc->dev, "%s: sps mode is not set\n",
+drivers/usb/dwc3/dwc3-msm.c:755:		dev_err(mdwc->dev, "%s: Min TRB size is 8KB\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:761:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:770:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:785:		dev_err(mdwc->dev, "%s: not enough memory\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:791:	list_add_tail(&req_complete->list_item, &mdwc->req_complete_list);
+drivers/usb/dwc3/dwc3-msm.c:796:	size = dwc3_msm_read_reg(mdwc->base, DWC3_GEVNTSIZ(0));
+drivers/usb/dwc3/dwc3-msm.c:797:	dbm_event_buffer_config(mdwc->dbm,
+drivers/usb/dwc3/dwc3-msm.c:798:		dwc3_msm_read_reg(mdwc->base, DWC3_GEVNTADRLO(0)),
+drivers/usb/dwc3/dwc3-msm.c:799:		dwc3_msm_read_reg(mdwc->base, DWC3_GEVNTADRHI(0)),
+drivers/usb/dwc3/dwc3-msm.c:804:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:811:	dbm_set_speed(mdwc->dbm, (u8)superspeed);
+drivers/usb/dwc3/dwc3-msm.c:939:	dwc3_msm_write_reg(mdwc->base, GSI_RING_BASE_ADDR_L(n),
+drivers/usb/dwc3/dwc3-msm.c:941:	dwc3_msm_write_reg(mdwc->base, GSI_DBL_ADDR_L(n), dbl_addr);
+drivers/usb/dwc3/dwc3-msm.c:943:	dev_dbg(mdwc->dev, "Ring Base Addr %d = %x", n,
+drivers/usb/dwc3/dwc3-msm.c:944:			dwc3_msm_read_reg(mdwc->base, GSI_RING_BASE_ADDR_L(n)));
+drivers/usb/dwc3/dwc3-msm.c:945:	dev_dbg(mdwc->dev, "GSI DB Addr %d = %x", n,
+drivers/usb/dwc3/dwc3-msm.c:946:			dwc3_msm_read_reg(mdwc->base, GSI_DBL_ADDR_L(n)));
+drivers/usb/dwc3/dwc3-msm.c:969:	gsi_dbl_address_lsb = devm_ioremap_nocache(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:972:		dev_dbg(mdwc->dev, "Failed to get GSI DBL address LSB\n");
+drivers/usb/dwc3/dwc3-msm.c:974:	gsi_dbl_address_msb = devm_ioremap_nocache(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:977:		dev_dbg(mdwc->dev, "Failed to get GSI DBL address MSB\n");
+drivers/usb/dwc3/dwc3-msm.c:980:	dev_dbg(mdwc->dev, "Writing link TRB addr: %pa to %pK (%x)\n",
+drivers/usb/dwc3/dwc3-msm.c:1213:	dev_dbg(mdwc->dev, "Set EP config to params = %x %x %x, for %s\n",
+drivers/usb/dwc3/dwc3-msm.c:1248:	dwc3_msm_write_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1250:	dwc3_msm_write_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1252:	dwc3_msm_write_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1254:	dev_dbg(mdwc->dev, "%s: Enable GSI\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:1255:	dwc3_msm_write_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1274:	dwc3_msm_write_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1291:	while (dwc3_msm_read_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1294:			dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1304:			dev_err(mdwc->dev, "Unable to suspend GSI ch\n");
+drivers/usb/dwc3/dwc3-msm.c:1338:		dev_dbg(mdwc->dev, "EP_OP_PREPARE_TRBS for %s\n", ep->name);
+drivers/usb/dwc3/dwc3-msm.c:1342:		dev_dbg(mdwc->dev, "EP_OP_FREE_TRBS for %s\n", ep->name);
+drivers/usb/dwc3/dwc3-msm.c:1347:		dev_dbg(mdwc->dev, "EP_OP_CONFIG for %s\n", ep->name);
+drivers/usb/dwc3/dwc3-msm.c:1353:		dev_dbg(mdwc->dev, "EP_OP_STARTXFER for %s\n", ep->name);
+drivers/usb/dwc3/dwc3-msm.c:1359:		dev_dbg(mdwc->dev, "EP_OP_GET_XFER_IDX for %s\n", ep->name);
+drivers/usb/dwc3/dwc3-msm.c:1363:		dev_dbg(mdwc->dev, "EP_OP_STORE_DBL_INFO\n");
+drivers/usb/dwc3/dwc3-msm.c:1367:		dev_dbg(mdwc->dev, "EP_OP_ENABLE_GSI\n");
+drivers/usb/dwc3/dwc3-msm.c:1376:		dev_dbg(mdwc->dev, "RING IN EP DB\n");
+drivers/usb/dwc3/dwc3-msm.c:1381:		dev_dbg(mdwc->dev, "EP_OP_UPDATEXFER\n");
+drivers/usb/dwc3/dwc3-msm.c:1388:		dev_dbg(mdwc->dev, "EP_OP_ENDXFER for %s\n", ep->name);
+drivers/usb/dwc3/dwc3-msm.c:1395:		dev_dbg(mdwc->dev, "EP_OP_SET_CLR_BLOCK_DBL %d\n",
+drivers/usb/dwc3/dwc3-msm.c:1400:		dev_dbg(mdwc->dev, "EP_OP_CHECK_FOR_SUSPEND\n");
+drivers/usb/dwc3/dwc3-msm.c:1405:		dev_dbg(mdwc->dev, "EP_OP_DISABLE\n");
+drivers/usb/dwc3/dwc3-msm.c:1409:		dev_err(mdwc->dev, "%s: Invalid opcode GSI EP\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:1446:	if (mdwc->original_ep_ops[dep->number]) {
+drivers/usb/dwc3/dwc3-msm.c:1447:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1453:	mdwc->original_ep_ops[dep->number] = ep->ops;
+drivers/usb/dwc3/dwc3-msm.c:1458:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1469:	if (!mdwc->dbm || !request || (dep->endpoint.ep_type == EP_TYPE_GSI)) {
+drivers/usb/dwc3/dwc3-msm.c:1483:	ret = dbm_ep_config(mdwc->dbm, dep->number, bam_pipe, producer,
+drivers/usb/dwc3/dwc3-msm.c:1486:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1517:	if (!mdwc->original_ep_ops[dep->number]) {
+drivers/usb/dwc3/dwc3-msm.c:1518:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1525:	ep->ops = mdwc->original_ep_ops[dep->number];
+drivers/usb/dwc3/dwc3-msm.c:1526:	mdwc->original_ep_ops[dep->number] = NULL;
+drivers/usb/dwc3/dwc3-msm.c:1533:	if (!mdwc->dbm || (dep->endpoint.ep_type == EP_TYPE_GSI)) {
+drivers/usb/dwc3/dwc3-msm.c:1540:		dev_dbg(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1544:		dbm_ep_unconfig(mdwc->dbm, dep->number);
+drivers/usb/dwc3/dwc3-msm.c:1552:		if (dbm_get_num_of_eps_configured(mdwc->dbm) == 0 &&
+drivers/usb/dwc3/dwc3-msm.c:1553:				!dbm_reset_ep_after_lpm(mdwc->dbm))
+drivers/usb/dwc3/dwc3-msm.c:1554:			dbm_event_buffer_config(mdwc->dbm, 0, 0, 0);
+drivers/usb/dwc3/dwc3-msm.c:1570:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:1573:	dev_info(mdwc->dev, "%s\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:1576:		dev_dbg(mdwc->dev, "%s failed!!!\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:1581:	mdwc->in_restart = true;
+drivers/usb/dwc3/dwc3-msm.c:1583:	if (!mdwc->vbus_active) {
+drivers/usb/dwc3/dwc3-msm.c:1584:		dev_dbg(mdwc->dev, "%s bailing out in disconnect\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:1586:		mdwc->in_restart = false;
+drivers/usb/dwc3/dwc3-msm.c:1593:	dwc3_resume_work(&mdwc->resume_work);
+drivers/usb/dwc3/dwc3-msm.c:1596:	while (--timeout && !pm_runtime_suspended(mdwc->dev))
+drivers/usb/dwc3/dwc3-msm.c:1600:		dev_dbg(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1603:			atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:1604:		pm_runtime_suspend(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:1607:	mdwc->in_restart = false;
+drivers/usb/dwc3/dwc3-msm.c:1609:	if (mdwc->vbus_active)
+drivers/usb/dwc3/dwc3-msm.c:1610:		dwc3_resume_work(&mdwc->resume_work);
+drivers/usb/dwc3/dwc3-msm.c:1613:	flush_delayed_work(&mdwc->sm_work);
+drivers/usb/dwc3/dwc3-msm.c:1620:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:1627:	dev_dbg(mdwc->dev, "%s initiate recovery from hc_died\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:1629:	if (mdwc->hc_died)
+drivers/usb/dwc3/dwc3-msm.c:1633:		dev_dbg(mdwc->dev, "%s event for diff HCD\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:1637:	mdwc->hc_died = true;
+drivers/usb/dwc3/dwc3-msm.c:1638:	queue_delayed_work(system_freezable_wq, &mdwc->sm_work, 0);
+drivers/usb/dwc3/dwc3-msm.c:1652:	return dbm_reset_ep_after_lpm(mdwc->dbm);
+drivers/usb/dwc3/dwc3-msm.c:1664:	if (IS_ERR_OR_NULL(mdwc->dwc3_gdsc))
+drivers/usb/dwc3/dwc3-msm.c:1668:		ret = regulator_enable(mdwc->dwc3_gdsc);
+drivers/usb/dwc3/dwc3-msm.c:1670:			dev_err(mdwc->dev, "unable to enable usb3 gdsc\n");
+drivers/usb/dwc3/dwc3-msm.c:1674:		ret = regulator_disable(mdwc->dwc3_gdsc);
+drivers/usb/dwc3/dwc3-msm.c:1676:			dev_err(mdwc->dev, "unable to disable usb3 gdsc\n");
+drivers/usb/dwc3/dwc3-msm.c:1689:		disable_irq(mdwc->pwr_event_irq);
+drivers/usb/dwc3/dwc3-msm.c:1691:		dev_dbg(mdwc->dev, "block_reset ASSERT\n");
+drivers/usb/dwc3/dwc3-msm.c:1692:		clk_disable_unprepare(mdwc->utmi_clk);
+drivers/usb/dwc3/dwc3-msm.c:1693:		clk_disable_unprepare(mdwc->sleep_clk);
+drivers/usb/dwc3/dwc3-msm.c:1694:		clk_disable_unprepare(mdwc->core_clk);
+drivers/usb/dwc3/dwc3-msm.c:1695:		clk_disable_unprepare(mdwc->iface_clk);
+drivers/usb/dwc3/dwc3-msm.c:1696:		ret = reset_control_assert(mdwc->core_reset);
+drivers/usb/dwc3/dwc3-msm.c:1698:			dev_err(mdwc->dev, "dwc3 core_reset assert failed\n");
+drivers/usb/dwc3/dwc3-msm.c:1700:		dev_dbg(mdwc->dev, "block_reset DEASSERT\n");
+drivers/usb/dwc3/dwc3-msm.c:1701:		ret = reset_control_deassert(mdwc->core_reset);
+drivers/usb/dwc3/dwc3-msm.c:1703:			dev_err(mdwc->dev, "dwc3 core_reset deassert failed\n");
+drivers/usb/dwc3/dwc3-msm.c:1705:		clk_prepare_enable(mdwc->iface_clk);
+drivers/usb/dwc3/dwc3-msm.c:1706:		clk_prepare_enable(mdwc->core_clk);
+drivers/usb/dwc3/dwc3-msm.c:1707:		clk_prepare_enable(mdwc->sleep_clk);
+drivers/usb/dwc3/dwc3-msm.c:1708:		clk_prepare_enable(mdwc->utmi_clk);
+drivers/usb/dwc3/dwc3-msm.c:1709:		enable_irq(mdwc->pwr_event_irq);
+drivers/usb/dwc3/dwc3-msm.c:1719:	guctl = dwc3_msm_read_reg(mdwc->base, DWC3_GUCTL);
+drivers/usb/dwc3/dwc3-msm.c:1723:	if (dwc3_msm_read_reg(mdwc->base, DWC3_GSNPSID) >= DWC3_REVISION_250A) {
+drivers/usb/dwc3/dwc3-msm.c:1724:		gfladj = dwc3_msm_read_reg(mdwc->base, DWC3_GFLADJ);
+drivers/usb/dwc3/dwc3-msm.c:1732:	switch (mdwc->utmi_clk_rate) {
+drivers/usb/dwc3/dwc3-msm.c:1747:		dev_warn(mdwc->dev, "Unsupported utmi_clk_rate: %u\n",
+drivers/usb/dwc3/dwc3-msm.c:1748:				mdwc->utmi_clk_rate);
+drivers/usb/dwc3/dwc3-msm.c:1752:	dwc3_msm_write_reg(mdwc->base, DWC3_GUCTL, guctl);
+drivers/usb/dwc3/dwc3-msm.c:1754:		dwc3_msm_write_reg(mdwc->base, DWC3_GFLADJ, gfladj);
+drivers/usb/dwc3/dwc3-msm.c:1760:	if (dwc3_msm_read_reg(mdwc->base, DWC3_GSNPSID) < DWC3_REVISION_250A)
+drivers/usb/dwc3/dwc3-msm.c:1762:		dwc3_msm_write_reg_field(mdwc->base, QSCRATCH_GENERAL_CFG,
+drivers/usb/dwc3/dwc3-msm.c:1770:	dwc3_msm_write_reg(mdwc->base, CGCTL_REG,
+drivers/usb/dwc3/dwc3-msm.c:1771:		dwc3_msm_read_reg(mdwc->base, CGCTL_REG) | 0x18);
+drivers/usb/dwc3/dwc3-msm.c:1779:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:1795:		dev_info(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1802:		reg = dwc3_msm_read_reg(mdwc->base, DWC3_GCTL);
+drivers/usb/dwc3/dwc3-msm.c:1804:		dwc3_msm_write_reg(mdwc->base, DWC3_GCTL, reg);
+drivers/usb/dwc3/dwc3-msm.c:1807:		schedule_work(&mdwc->restart_usb_work);
+drivers/usb/dwc3/dwc3-msm.c:1810:		dev_dbg(mdwc->dev, "DWC3_CONTROLLER_RESET_EVENT received\n");
+drivers/usb/dwc3/dwc3-msm.c:1815:		dev_dbg(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:1824:			dwc3_msm_write_reg(mdwc->base, QSCRATCH_GENERAL_CFG,
+drivers/usb/dwc3/dwc3-msm.c:1825:				dwc3_msm_read_reg(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1832:			dwc3_msm_write_reg(mdwc->base, QSCRATCH_GENERAL_CFG,
+drivers/usb/dwc3/dwc3-msm.c:1833:				dwc3_msm_read_reg(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1840:			dwc3_msm_write_reg(mdwc->base, QSCRATCH_GENERAL_CFG,
+drivers/usb/dwc3/dwc3-msm.c:1841:				dwc3_msm_read_reg(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1847:		dwc->tx_fifo_size = mdwc->tx_fifo_size;
+drivers/usb/dwc3/dwc3-msm.c:1850:		dev_dbg(mdwc->dev, "DWC3_CONTROLLER_CONNDONE_EVENT received\n");
+drivers/usb/dwc3/dwc3-msm.c:1855:		if (mdwc->dbm && dbm_l1_lpm_interrupt(mdwc->dbm))
+drivers/usb/dwc3/dwc3-msm.c:1856:			dwc3_msm_write_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:1863:		dev_dbg(mdwc->dev, "DWC3_CONTROLLER_NOTIFY_OTG_EVENT received\n");
+drivers/usb/dwc3/dwc3-msm.c:1865:			mdwc->suspend = dwc->b_suspend;
+drivers/usb/dwc3/dwc3-msm.c:1866:			queue_work(mdwc->dwc3_wq, &mdwc->resume_work);
+drivers/usb/dwc3/dwc3-msm.c:1870:		dev_dbg(mdwc->dev, "DWC3_CONTROLLER_SET_CURRENT_DRAW_EVENT received\n");
+drivers/usb/dwc3/dwc3-msm.c:1871:		schedule_work(&mdwc->vbus_draw_work);
+drivers/usb/dwc3/dwc3-msm.c:1874:		dev_dbg(mdwc->dev, "DWC3_CONTROLLER_RESTART_USB_SESSION received\n");
+drivers/usb/dwc3/dwc3-msm.c:1875:		schedule_work(&mdwc->restart_usb_work);
+drivers/usb/dwc3/dwc3-msm.c:1881:		dev_dbg(mdwc->dev, "unknown dwc3 event\n");
+drivers/usb/dwc3/dwc3-msm.c:1903:	if (mdwc->dbm) {
+drivers/usb/dwc3/dwc3-msm.c:1905:		dbm_soft_reset(mdwc->dbm, 1);
+drivers/usb/dwc3/dwc3-msm.c:1907:		dbm_soft_reset(mdwc->dbm, 0);
+drivers/usb/dwc3/dwc3-msm.c:1910:		dwc3_msm_write_reg_field(mdwc->base, QSCRATCH_GENERAL_CFG,
+drivers/usb/dwc3/dwc3-msm.c:1912:		dbm_enable(mdwc->dbm);
+drivers/usb/dwc3/dwc3-msm.c:1937:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:1942:	if (mdwc->ahb2phy_base) {
+drivers/usb/dwc3/dwc3-msm.c:1943:		clk_prepare_enable(mdwc->cfg_ahb_clk);
+drivers/usb/dwc3/dwc3-msm.c:1944:		val = readl_relaxed(mdwc->ahb2phy_base +
+drivers/usb/dwc3/dwc3-msm.c:1948:				mdwc->ahb2phy_base + PERIPH_SS_AHB2PHY_TOP_CFG);
+drivers/usb/dwc3/dwc3-msm.c:1952:		clk_disable_unprepare(mdwc->cfg_ahb_clk);
+drivers/usb/dwc3/dwc3-msm.c:1955:	if (!mdwc->init) {
+drivers/usb/dwc3/dwc3-msm.c:1957:				atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:1960:			dev_err(mdwc->dev, "dwc3_core_pre_init failed\n");
+drivers/usb/dwc3/dwc3-msm.c:1963:		mdwc->init = true;
+drivers/usb/dwc3/dwc3-msm.c:1976:	if ((mdwc->in_host_mode || mdwc->vbus_active)
+drivers/usb/dwc3/dwc3-msm.c:1977:			&& dwc3_msm_is_superspeed(mdwc) && !mdwc->in_restart) {
+drivers/usb/dwc3/dwc3-msm.c:1978:		if (!atomic_read(&mdwc->in_p3)) {
+drivers/usb/dwc3/dwc3-msm.c:1979:			dev_err(mdwc->dev, "Not in P3,aborting LPM sequence\n");
+drivers/usb/dwc3/dwc3-msm.c:1985:	dwc3_msm_write_reg(mdwc->base, PWR_EVNT_IRQ_STAT_REG,
+drivers/usb/dwc3/dwc3-msm.c:1989:	reg = dwc3_msm_read_reg(mdwc->base, DWC3_GUSB2PHYCFG(0));
+drivers/usb/dwc3/dwc3-msm.c:1990:	dwc3_msm_write_reg(mdwc->base, DWC3_GUSB2PHYCFG(0),
+drivers/usb/dwc3/dwc3-msm.c:1996:		reg = dwc3_msm_read_reg(mdwc->base, PWR_EVNT_IRQ_STAT_REG);
+drivers/usb/dwc3/dwc3-msm.c:2002:		dev_err(mdwc->dev, "could not transition HS PHY to L2\n");
+drivers/usb/dwc3/dwc3-msm.c:2005:	dwc3_msm_write_reg(mdwc->base, PWR_EVNT_IRQ_STAT_REG,
+drivers/usb/dwc3/dwc3-msm.c:2016:	ret = msm_bus_scale_client_update_request(mdwc->bus_perf_client,
+drivers/usb/dwc3/dwc3-msm.c:2017:			mdwc->bus_vote);
+drivers/usb/dwc3/dwc3-msm.c:2019:		dev_err(mdwc->dev, "Failed to reset bus bw vote %d\n", ret);
+drivers/usb/dwc3/dwc3-msm.c:2024:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2028:	mdwc->hs_phy->flags &= ~(PHY_HSFS_MODE | PHY_LS_MODE);
+drivers/usb/dwc3/dwc3-msm.c:2029:	if (mdwc->in_host_mode) {
+drivers/usb/dwc3/dwc3-msm.c:2030:		reg = dwc3_msm_read_reg(mdwc->base, USB3_HCSPARAMS1);
+drivers/usb/dwc3/dwc3-msm.c:2033:			reg = dwc3_msm_read_reg(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:2037:					mdwc->hs_phy->flags |= PHY_HSFS_MODE;
+drivers/usb/dwc3/dwc3-msm.c:2039:					mdwc->hs_phy->flags |= PHY_LS_MODE;
+drivers/usb/dwc3/dwc3-msm.c:2045:			mdwc->hs_phy->flags |= PHY_HSFS_MODE;
+drivers/usb/dwc3/dwc3-msm.c:2047:			mdwc->hs_phy->flags |= PHY_LS_MODE;
+drivers/usb/dwc3/dwc3-msm.c:2058:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2062:	mutex_lock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2064:		dev_dbg(mdwc->dev, "%s: Already suspended\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2065:		mutex_unlock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2069:	cancel_delayed_work_sync(&mdwc->perf_vote_work);
+drivers/usb/dwc3/dwc3-msm.c:2072:	if (!mdwc->in_host_mode) {
+drivers/usb/dwc3/dwc3-msm.c:2077:				dev_dbg(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:2082:				mutex_unlock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2088:	if (!mdwc->vbus_active && dwc->is_drd &&
+drivers/usb/dwc3/dwc3-msm.c:2089:		mdwc->otg_state == OTG_STATE_B_PERIPHERAL) {
+drivers/usb/dwc3/dwc3-msm.c:2099:		dev_dbg(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:2102:		mutex_unlock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2111:	if ((dwc->is_drd && mdwc->otg_state == OTG_STATE_B_SUSPEND) &&
+drivers/usb/dwc3/dwc3-msm.c:2116:		mutex_unlock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2122:		mutex_unlock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2127:	can_suspend_ssphy = !(mdwc->in_host_mode &&
+drivers/usb/dwc3/dwc3-msm.c:2138:	disable_irq(mdwc->pwr_event_irq);
+drivers/usb/dwc3/dwc3-msm.c:2142:	usb_phy_set_suspend(mdwc->hs_phy, 1);
+drivers/usb/dwc3/dwc3-msm.c:2148:			mdwc->ss_phy->flags |= DEVICE_IN_SS_MODE;
+drivers/usb/dwc3/dwc3-msm.c:2149:		usb_phy_set_suspend(mdwc->ss_phy, 1);
+drivers/usb/dwc3/dwc3-msm.c:2150:		mdwc->lpm_flags |= MDWC3_SS_PHY_SUSPEND;
+drivers/usb/dwc3/dwc3-msm.c:2157:	if (mdwc->bus_aggr_clk)
+drivers/usb/dwc3/dwc3-msm.c:2158:		clk_disable_unprepare(mdwc->bus_aggr_clk);
+drivers/usb/dwc3/dwc3-msm.c:2159:	clk_disable_unprepare(mdwc->utmi_clk);
+drivers/usb/dwc3/dwc3-msm.c:2162:	if (!mdwc->in_host_mode && !mdwc->vbus_active) {
+drivers/usb/dwc3/dwc3-msm.c:2163:		clk_set_flags(mdwc->core_clk, CLKFLAG_NORETAIN_MEM);
+drivers/usb/dwc3/dwc3-msm.c:2164:		clk_set_flags(mdwc->core_clk, CLKFLAG_NORETAIN_PERIPH);
+drivers/usb/dwc3/dwc3-msm.c:2167:	clk_set_rate(mdwc->core_clk, 19200000);
+drivers/usb/dwc3/dwc3-msm.c:2168:	clk_disable_unprepare(mdwc->core_clk);
+drivers/usb/dwc3/dwc3-msm.c:2169:	if (mdwc->noc_aggr_clk)
+drivers/usb/dwc3/dwc3-msm.c:2170:		clk_disable_unprepare(mdwc->noc_aggr_clk);
+drivers/usb/dwc3/dwc3-msm.c:2176:	clk_disable_unprepare(mdwc->iface_clk);
+drivers/usb/dwc3/dwc3-msm.c:2178:	if (!mdwc->xo_vote_for_charger) {
+drivers/usb/dwc3/dwc3-msm.c:2179:		clk_disable_unprepare(mdwc->xo_clk);
+drivers/usb/dwc3/dwc3-msm.c:2180:		dev_err(mdwc->dev, "%s unvote for TCXO buffer\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2182:		dev_err(mdwc->dev, "%s xo_vote_for_charger = %d\n",
+drivers/usb/dwc3/dwc3-msm.c:2183:			__func__, mdwc->xo_vote_for_charger);
+drivers/usb/dwc3/dwc3-msm.c:2187:	if (!mdwc->in_host_mode && (!mdwc->vbus_active || mdwc->in_restart)) {
+drivers/usb/dwc3/dwc3-msm.c:2188:		mdwc->lpm_flags |= MDWC3_POWER_COLLAPSE;
+drivers/usb/dwc3/dwc3-msm.c:2189:		dev_dbg(mdwc->dev, "%s: power collapse\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2191:		clk_disable_unprepare(mdwc->sleep_clk);
+drivers/usb/dwc3/dwc3-msm.c:2195:	if (mdwc->bus_perf_client) {
+drivers/usb/dwc3/dwc3-msm.c:2196:		mdwc->bus_vote = 0;
+drivers/usb/dwc3/dwc3-msm.c:2197:		schedule_work(&mdwc->bus_vote_w);
+drivers/usb/dwc3/dwc3-msm.c:2205:	if (mdwc->lpm_to_suspend_delay) {
+drivers/usb/dwc3/dwc3-msm.c:2206:		dev_dbg(mdwc->dev, "defer suspend with %d(msecs)\n",
+drivers/usb/dwc3/dwc3-msm.c:2207:					mdwc->lpm_to_suspend_delay);
+drivers/usb/dwc3/dwc3-msm.c:2208:		pm_wakeup_event(mdwc->dev, mdwc->lpm_to_suspend_delay);
+drivers/usb/dwc3/dwc3-msm.c:2210:		pm_relax(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:2220:	if (mdwc->vbus_active || mdwc->in_host_mode) {
+drivers/usb/dwc3/dwc3-msm.c:2221:		enable_irq_wake(mdwc->hs_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:2222:		enable_irq(mdwc->hs_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:2223:		if (mdwc->ss_phy_irq) {
+drivers/usb/dwc3/dwc3-msm.c:2224:			enable_irq_wake(mdwc->ss_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:2225:			enable_irq(mdwc->ss_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:2227:		mdwc->lpm_flags |= MDWC3_ASYNC_IRQ_WAKE_CAPABILITY;
+drivers/usb/dwc3/dwc3-msm.c:2230:	dev_info(mdwc->dev, "DWC3 in low power mode\n");
+drivers/usb/dwc3/dwc3-msm.c:2231:	mutex_unlock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2239:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2241:	dev_dbg(mdwc->dev, "%s: exiting lpm\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2243:	mutex_lock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2245:		dev_dbg(mdwc->dev, "%s: Already resumed\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2246:		mutex_unlock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2250:	pm_stay_awake(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:2253:	if (mdwc->bus_perf_client) {
+drivers/usb/dwc3/dwc3-msm.c:2254:		mdwc->bus_vote = 1;
+drivers/usb/dwc3/dwc3-msm.c:2255:		schedule_work(&mdwc->bus_vote_w);
+drivers/usb/dwc3/dwc3-msm.c:2259:	if (!mdwc->xo_vote_for_charger) {
+drivers/usb/dwc3/dwc3-msm.c:2260:		ret = clk_prepare_enable(mdwc->xo_clk);
+drivers/usb/dwc3/dwc3-msm.c:2262:			dev_err(mdwc->dev, "%s failed to vote TCXO buffer%d\n",
+drivers/usb/dwc3/dwc3-msm.c:2265:			dev_err(mdwc->dev, "%s vote for TCXO buffer\n",
+drivers/usb/dwc3/dwc3-msm.c:2268:		dev_err(mdwc->dev, "%s xo_vote_for_charger = %d\n",
+drivers/usb/dwc3/dwc3-msm.c:2269:			__func__, mdwc->xo_vote_for_charger);
+drivers/usb/dwc3/dwc3-msm.c:2273:	if (mdwc->lpm_flags & MDWC3_POWER_COLLAPSE) {
+drivers/usb/dwc3/dwc3-msm.c:2274:		dev_dbg(mdwc->dev, "%s: exit power collapse\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2276:		ret = reset_control_assert(mdwc->core_reset);
+drivers/usb/dwc3/dwc3-msm.c:2278:			dev_err(mdwc->dev, "%s:core_reset assert failed\n",
+drivers/usb/dwc3/dwc3-msm.c:2282:		ret = reset_control_deassert(mdwc->core_reset);
+drivers/usb/dwc3/dwc3-msm.c:2284:			dev_err(mdwc->dev, "%s:core_reset deassert failed\n",
+drivers/usb/dwc3/dwc3-msm.c:2286:		clk_prepare_enable(mdwc->sleep_clk);
+drivers/usb/dwc3/dwc3-msm.c:2293:	clk_prepare_enable(mdwc->iface_clk);
+drivers/usb/dwc3/dwc3-msm.c:2294:	if (mdwc->noc_aggr_clk)
+drivers/usb/dwc3/dwc3-msm.c:2295:		clk_prepare_enable(mdwc->noc_aggr_clk);
+drivers/usb/dwc3/dwc3-msm.c:2297:	core_clk_rate = mdwc->core_clk_rate;
+drivers/usb/dwc3/dwc3-msm.c:2298:	if (mdwc->in_host_mode && mdwc->max_rh_port_speed == USB_SPEED_HIGH) {
+drivers/usb/dwc3/dwc3-msm.c:2299:		core_clk_rate = mdwc->core_clk_rate_hs;
+drivers/usb/dwc3/dwc3-msm.c:2300:		dev_dbg(mdwc->dev, "%s: set hs core clk rate %ld\n", __func__,
+drivers/usb/dwc3/dwc3-msm.c:2304:	clk_set_rate(mdwc->core_clk, core_clk_rate);
+drivers/usb/dwc3/dwc3-msm.c:2305:	clk_prepare_enable(mdwc->core_clk);
+drivers/usb/dwc3/dwc3-msm.c:2308:	clk_set_flags(mdwc->core_clk, CLKFLAG_RETAIN_MEM);
+drivers/usb/dwc3/dwc3-msm.c:2309:	clk_set_flags(mdwc->core_clk, CLKFLAG_RETAIN_PERIPH);
+drivers/usb/dwc3/dwc3-msm.c:2311:	clk_prepare_enable(mdwc->utmi_clk);
+drivers/usb/dwc3/dwc3-msm.c:2312:	if (mdwc->bus_aggr_clk)
+drivers/usb/dwc3/dwc3-msm.c:2313:		clk_prepare_enable(mdwc->bus_aggr_clk);
+drivers/usb/dwc3/dwc3-msm.c:2317:			mdwc->lpm_flags & MDWC3_SS_PHY_SUSPEND) {
+drivers/usb/dwc3/dwc3-msm.c:2318:		mdwc->ss_phy->flags &= ~(PHY_LANE_A | PHY_LANE_B);
+drivers/usb/dwc3/dwc3-msm.c:2319:		if (mdwc->typec_orientation == ORIENTATION_CC1)
+drivers/usb/dwc3/dwc3-msm.c:2320:			mdwc->ss_phy->flags |= PHY_LANE_A;
+drivers/usb/dwc3/dwc3-msm.c:2321:		if (mdwc->typec_orientation == ORIENTATION_CC2)
+drivers/usb/dwc3/dwc3-msm.c:2322:			mdwc->ss_phy->flags |= PHY_LANE_B;
+drivers/usb/dwc3/dwc3-msm.c:2323:		usb_phy_set_suspend(mdwc->ss_phy, 0);
+drivers/usb/dwc3/dwc3-msm.c:2324:		mdwc->ss_phy->flags &= ~DEVICE_IN_SS_MODE;
+drivers/usb/dwc3/dwc3-msm.c:2325:		mdwc->lpm_flags &= ~MDWC3_SS_PHY_SUSPEND;
+drivers/usb/dwc3/dwc3-msm.c:2328:	mdwc->hs_phy->flags &= ~(PHY_HSFS_MODE | PHY_LS_MODE);
+drivers/usb/dwc3/dwc3-msm.c:2330:	usb_phy_set_suspend(mdwc->hs_phy, 0);
+drivers/usb/dwc3/dwc3-msm.c:2333:	if (mdwc->lpm_flags & MDWC3_POWER_COLLAPSE) {
+drivers/usb/dwc3/dwc3-msm.c:2336:		dev_dbg(mdwc->dev, "%s: exit power collapse\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2341:		tmp = dwc3_msm_read_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:2343:		atomic_set(&mdwc->in_p3, tmp == DWC3_LINK_STATE_U3);
+drivers/usb/dwc3/dwc3-msm.c:2344:		dwc3_msm_write_reg_field(mdwc->base, PWR_EVNT_IRQ_MASK_REG,
+drivers/usb/dwc3/dwc3-msm.c:2347:		mdwc->lpm_flags &= ~MDWC3_POWER_COLLAPSE;
+drivers/usb/dwc3/dwc3-msm.c:2353:	enable_irq(mdwc->pwr_event_irq);
+drivers/usb/dwc3/dwc3-msm.c:2356:	dwc3_msm_write_reg(mdwc->base, DWC3_GUSB2PHYCFG(0),
+drivers/usb/dwc3/dwc3-msm.c:2357:		dwc3_msm_read_reg(mdwc->base, DWC3_GUSB2PHYCFG(0)) &
+drivers/usb/dwc3/dwc3-msm.c:2362:	if (mdwc->lpm_flags & MDWC3_ASYNC_IRQ_WAKE_CAPABILITY) {
+drivers/usb/dwc3/dwc3-msm.c:2363:		disable_irq_wake(mdwc->hs_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:2364:		disable_irq_nosync(mdwc->hs_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:2365:		if (mdwc->ss_phy_irq) {
+drivers/usb/dwc3/dwc3-msm.c:2366:			disable_irq_wake(mdwc->ss_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:2367:			disable_irq_nosync(mdwc->ss_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:2369:		mdwc->lpm_flags &= ~MDWC3_ASYNC_IRQ_WAKE_CAPABILITY;
+drivers/usb/dwc3/dwc3-msm.c:2372:	dev_info(mdwc->dev, "DWC3 exited from low power mode\n");
+drivers/usb/dwc3/dwc3-msm.c:2384:	if (pm_qos_request_active(&mdwc->pm_qos_req_dma))
+drivers/usb/dwc3/dwc3-msm.c:2385:		schedule_delayed_work(&mdwc->perf_vote_work,
+drivers/usb/dwc3/dwc3-msm.c:2389:	mutex_unlock(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:2402:	flush_delayed_work(&mdwc->sm_work);
+drivers/usb/dwc3/dwc3-msm.c:2404:	if (mdwc->id_state == DWC3_ID_FLOAT) {
+drivers/usb/dwc3/dwc3-msm.c:2405:		dev_dbg(mdwc->dev, "XCVR: ID set\n");
+drivers/usb/dwc3/dwc3-msm.c:2406:		set_bit(ID, &mdwc->inputs);
+drivers/usb/dwc3/dwc3-msm.c:2408:		dev_dbg(mdwc->dev, "XCVR: ID clear\n");
+drivers/usb/dwc3/dwc3-msm.c:2409:		clear_bit(ID, &mdwc->inputs);
+drivers/usb/dwc3/dwc3-msm.c:2413:	if ((mdwc->vbus_active || mdwc->data_role == DATA_DEVICE) && !mdwc->in_restart) {
+drivers/usb/dwc3/dwc3-msm.c:2414:		dev_dbg(mdwc->dev, "XCVR: BSV set\n");
+drivers/usb/dwc3/dwc3-msm.c:2415:		set_bit(B_SESS_VLD, &mdwc->inputs);
+drivers/usb/dwc3/dwc3-msm.c:2418:	if (mdwc->vbus_active && !mdwc->in_restart) {
+drivers/usb/dwc3/dwc3-msm.c:2419:		dev_dbg(mdwc->dev, "XCVR: BSV set\n");
+drivers/usb/dwc3/dwc3-msm.c:2420:		set_bit(B_SESS_VLD, &mdwc->inputs);
+drivers/usb/dwc3/dwc3-msm.c:2424:		dev_dbg(mdwc->dev, "XCVR: BSV clear\n");
+drivers/usb/dwc3/dwc3-msm.c:2425:		clear_bit(B_SESS_VLD, &mdwc->inputs);
+drivers/usb/dwc3/dwc3-msm.c:2428:	if (mdwc->suspend) {
+drivers/usb/dwc3/dwc3-msm.c:2429:		dev_dbg(mdwc->dev, "XCVR: SUSP set\n");
+drivers/usb/dwc3/dwc3-msm.c:2430:		set_bit(B_SUSPEND, &mdwc->inputs);
+drivers/usb/dwc3/dwc3-msm.c:2432:		dev_dbg(mdwc->dev, "XCVR: SUSP clear\n");
+drivers/usb/dwc3/dwc3-msm.c:2433:		clear_bit(B_SUSPEND, &mdwc->inputs);
+drivers/usb/dwc3/dwc3-msm.c:2436:	queue_delayed_work(system_freezable_wq, &mdwc->sm_work, 0);
+drivers/usb/dwc3/dwc3-msm.c:2442:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2444:	dev_dbg(mdwc->dev, "%s: dwc3 resume work\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2453:	if (mdwc->resume_pending) {
+drivers/usb/dwc3/dwc3-msm.c:2455:		mdwc->resume_pending = false;
+drivers/usb/dwc3/dwc3-msm.c:2458:	if (atomic_read(&mdwc->pm_suspended)) {
+drivers/usb/dwc3/dwc3-msm.c:2470:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2473:	irq_stat = dwc3_msm_read_reg(mdwc->base, PWR_EVNT_IRQ_STAT_REG);
+drivers/usb/dwc3/dwc3-msm.c:2474:	dev_dbg(mdwc->dev, "%s irq_stat=%X\n", __func__, irq_stat);
+drivers/usb/dwc3/dwc3-msm.c:2480:		u32 ls = dwc3_msm_read_reg_field(mdwc->base,
+drivers/usb/dwc3/dwc3-msm.c:2482:		dev_dbg(mdwc->dev, "%s link state = 0x%04x\n", __func__, ls);
+drivers/usb/dwc3/dwc3-msm.c:2483:		atomic_set(&mdwc->in_p3, ls == DWC3_LINK_STATE_U3);
+drivers/usb/dwc3/dwc3-msm.c:2490:		atomic_set(&mdwc->in_p3, 0);
+drivers/usb/dwc3/dwc3-msm.c:2494:		atomic_set(&mdwc->in_p3, 1);
+drivers/usb/dwc3/dwc3-msm.c:2507:		dev_dbg(mdwc->dev, "%s: handling PWR_EVNT_LPM_OUT_L1_MASK\n",
+drivers/usb/dwc3/dwc3-msm.c:2510:			dev_err(mdwc->dev, "%s failed to take dwc out of L1\n",
+drivers/usb/dwc3/dwc3-msm.c:2518:		dev_dbg(mdwc->dev, "%s: unexpected PWR_EVNT, irq_stat=%X\n",
+drivers/usb/dwc3/dwc3-msm.c:2521:	dwc3_msm_write_reg(mdwc->base, PWR_EVNT_IRQ_STAT_REG, irq_clear);
+drivers/usb/dwc3/dwc3-msm.c:2527:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2529:	dev_dbg(mdwc->dev, "%s\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2532:		dwc3_resume_work(&mdwc->resume_work);
+drivers/usb/dwc3/dwc3-msm.c:2544:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2547:	dev_dbg(mdwc->dev, "%s received\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2557:		mdwc->resume_pending = true;
+drivers/usb/dwc3/dwc3-msm.c:2574:				cpu_to_affin, mdwc->irq_to_affin);
+drivers/usb/dwc3/dwc3-msm.c:2575:		irq_set_affinity(mdwc->irq_to_affin, get_cpu_mask(cpu));
+drivers/usb/dwc3/dwc3-msm.c:2587:	mdwc->dwc3_gdsc = devm_regulator_get(mdwc->dev, "USB3_GDSC");
+drivers/usb/dwc3/dwc3-msm.c:2588:	if (IS_ERR(mdwc->dwc3_gdsc))
+drivers/usb/dwc3/dwc3-msm.c:2589:		mdwc->dwc3_gdsc = NULL;
+drivers/usb/dwc3/dwc3-msm.c:2591:	mdwc->xo_clk = devm_clk_get(mdwc->dev, "xo");
+drivers/usb/dwc3/dwc3-msm.c:2592:	if (IS_ERR(mdwc->xo_clk)) {
+drivers/usb/dwc3/dwc3-msm.c:2593:		dev_err(mdwc->dev, "%s unable to get TCXO buffer handle\n",
+drivers/usb/dwc3/dwc3-msm.c:2595:		ret = PTR_ERR(mdwc->xo_clk);
+drivers/usb/dwc3/dwc3-msm.c:2598:	clk_set_rate(mdwc->xo_clk, 19200000);
+drivers/usb/dwc3/dwc3-msm.c:2600:	mdwc->iface_clk = devm_clk_get(mdwc->dev, "iface_clk");
+drivers/usb/dwc3/dwc3-msm.c:2601:	if (IS_ERR(mdwc->iface_clk)) {
+drivers/usb/dwc3/dwc3-msm.c:2602:		dev_err(mdwc->dev, "failed to get iface_clk\n");
+drivers/usb/dwc3/dwc3-msm.c:2603:		ret = PTR_ERR(mdwc->iface_clk);
+drivers/usb/dwc3/dwc3-msm.c:2612:	mdwc->core_clk = devm_clk_get(mdwc->dev, "core_clk");
+drivers/usb/dwc3/dwc3-msm.c:2613:	if (IS_ERR(mdwc->core_clk)) {
+drivers/usb/dwc3/dwc3-msm.c:2614:		dev_err(mdwc->dev, "failed to get core_clk\n");
+drivers/usb/dwc3/dwc3-msm.c:2615:		ret = PTR_ERR(mdwc->core_clk);
+drivers/usb/dwc3/dwc3-msm.c:2619:	if (of_property_read_u32(mdwc->dev->of_node, "qcom,core-clk-rate",
+drivers/usb/dwc3/dwc3-msm.c:2620:				(u32 *)&mdwc->core_clk_rate)) {
+drivers/usb/dwc3/dwc3-msm.c:2621:		dev_err(mdwc->dev, "USB core-clk-rate is not present\n");
+drivers/usb/dwc3/dwc3-msm.c:2625:	mdwc->core_clk_rate = clk_round_rate(mdwc->core_clk,
+drivers/usb/dwc3/dwc3-msm.c:2626:							mdwc->core_clk_rate);
+drivers/usb/dwc3/dwc3-msm.c:2628:	dev_dbg(mdwc->dev, "USB core frequency = %ld\n",
+drivers/usb/dwc3/dwc3-msm.c:2629:						mdwc->core_clk_rate);
+drivers/usb/dwc3/dwc3-msm.c:2630:	ret = clk_set_rate(mdwc->core_clk, mdwc->core_clk_rate);
+drivers/usb/dwc3/dwc3-msm.c:2632:		dev_err(mdwc->dev, "fail to set core_clk freq:%d\n", ret);
+drivers/usb/dwc3/dwc3-msm.c:2634:	if (of_property_read_u32(mdwc->dev->of_node, "qcom,core-clk-rate-hs",
+drivers/usb/dwc3/dwc3-msm.c:2635:				(u32 *)&mdwc->core_clk_rate_hs)) {
+drivers/usb/dwc3/dwc3-msm.c:2636:		dev_dbg(mdwc->dev, "USB core-clk-rate-hs is not present\n");
+drivers/usb/dwc3/dwc3-msm.c:2637:		mdwc->core_clk_rate_hs = mdwc->core_clk_rate;
+drivers/usb/dwc3/dwc3-msm.c:2640:	mdwc->core_reset = devm_reset_control_get(mdwc->dev, "core_reset");
+drivers/usb/dwc3/dwc3-msm.c:2641:	if (IS_ERR(mdwc->core_reset)) {
+drivers/usb/dwc3/dwc3-msm.c:2642:		dev_err(mdwc->dev, "failed to get core_reset\n");
+drivers/usb/dwc3/dwc3-msm.c:2643:		return PTR_ERR(mdwc->core_reset);
+drivers/usb/dwc3/dwc3-msm.c:2646:	mdwc->sleep_clk = devm_clk_get(mdwc->dev, "sleep_clk");
+drivers/usb/dwc3/dwc3-msm.c:2647:	if (IS_ERR(mdwc->sleep_clk)) {
+drivers/usb/dwc3/dwc3-msm.c:2648:		dev_err(mdwc->dev, "failed to get sleep_clk\n");
+drivers/usb/dwc3/dwc3-msm.c:2649:		ret = PTR_ERR(mdwc->sleep_clk);
+drivers/usb/dwc3/dwc3-msm.c:2653:	clk_set_rate(mdwc->sleep_clk, 32000);
+drivers/usb/dwc3/dwc3-msm.c:2654:	mdwc->utmi_clk_rate = 19200000;
+drivers/usb/dwc3/dwc3-msm.c:2655:	mdwc->utmi_clk = devm_clk_get(mdwc->dev, "utmi_clk");
+drivers/usb/dwc3/dwc3-msm.c:2656:	if (IS_ERR(mdwc->utmi_clk)) {
+drivers/usb/dwc3/dwc3-msm.c:2657:		dev_err(mdwc->dev, "failed to get utmi_clk\n");
+drivers/usb/dwc3/dwc3-msm.c:2658:		ret = PTR_ERR(mdwc->utmi_clk);
+drivers/usb/dwc3/dwc3-msm.c:2662:	clk_set_rate(mdwc->utmi_clk, mdwc->utmi_clk_rate);
+drivers/usb/dwc3/dwc3-msm.c:2663:	mdwc->bus_aggr_clk = devm_clk_get(mdwc->dev, "bus_aggr_clk");
+drivers/usb/dwc3/dwc3-msm.c:2664:	if (IS_ERR(mdwc->bus_aggr_clk))
+drivers/usb/dwc3/dwc3-msm.c:2665:		mdwc->bus_aggr_clk = NULL;
+drivers/usb/dwc3/dwc3-msm.c:2667:	mdwc->noc_aggr_clk = devm_clk_get(mdwc->dev, "noc_aggr_clk");
+drivers/usb/dwc3/dwc3-msm.c:2668:	if (IS_ERR(mdwc->noc_aggr_clk))
+drivers/usb/dwc3/dwc3-msm.c:2669:		mdwc->noc_aggr_clk = NULL;
+drivers/usb/dwc3/dwc3-msm.c:2671:	if (of_property_match_string(mdwc->dev->of_node,
+drivers/usb/dwc3/dwc3-msm.c:2673:		mdwc->cfg_ahb_clk = devm_clk_get(mdwc->dev, "cfg_ahb_clk");
+drivers/usb/dwc3/dwc3-msm.c:2674:		if (IS_ERR(mdwc->cfg_ahb_clk)) {
+drivers/usb/dwc3/dwc3-msm.c:2675:			ret = PTR_ERR(mdwc->cfg_ahb_clk);
+drivers/usb/dwc3/dwc3-msm.c:2676:			mdwc->cfg_ahb_clk = NULL;
+drivers/usb/dwc3/dwc3-msm.c:2678:				dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:2692:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2699:		dev_err(mdwc->dev, "%s: edev null\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2705:	dev_dbg(mdwc->dev, "host:%ld (id:%d) event received\n", event, id);
+drivers/usb/dwc3/dwc3-msm.c:2709:		mdwc->typec_orientation = ORIENTATION_NONE;
+drivers/usb/dwc3/dwc3-msm.c:2711:		mdwc->typec_orientation =
+drivers/usb/dwc3/dwc3-msm.c:2714:	dbg_event(0xFF, "cc_state", mdwc->typec_orientation);
+drivers/usb/dwc3/dwc3-msm.c:2721:	if (mdwc->id_state != id) {
+drivers/usb/dwc3/dwc3-msm.c:2722:		mdwc->id_state = id;
+drivers/usb/dwc3/dwc3-msm.c:2723:		dbg_event(0xFF, "id_state", mdwc->id_state);
+drivers/usb/dwc3/dwc3-msm.c:2724:		queue_work(mdwc->dwc3_wq, &mdwc->resume_work);
+drivers/usb/dwc3/dwc3-msm.c:2736:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2738:	if (!mdwc->vbus_active)
+drivers/usb/dwc3/dwc3-msm.c:2744:		mdwc->vbus_active = 0;
+drivers/usb/dwc3/dwc3-msm.c:2745:		dbg_event(0xFF, "Q RW SPD CHK", mdwc->vbus_active);
+drivers/usb/dwc3/dwc3-msm.c:2746:		queue_work(mdwc->dwc3_wq, &mdwc->resume_work);
+drivers/usb/dwc3/dwc3-msm.c:2754:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2760:		dev_err(mdwc->dev, "%s: edev null\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:2764:	dev_dbg(mdwc->dev, "vbus:%ld event received\n", event);
+drivers/usb/dwc3/dwc3-msm.c:2766:	if (mdwc->vbus_active == event)
+drivers/usb/dwc3/dwc3-msm.c:2771:		mdwc->typec_orientation = ORIENTATION_NONE;
+drivers/usb/dwc3/dwc3-msm.c:2773:		mdwc->typec_orientation =
+drivers/usb/dwc3/dwc3-msm.c:2776:	dbg_event(0xFF, "cc_state", mdwc->typec_orientation);
+drivers/usb/dwc3/dwc3-msm.c:2783:	mdwc->vbus_active = event;
+drivers/usb/dwc3/dwc3-msm.c:2784:	if (dwc->is_drd && !mdwc->in_restart) {
+drivers/usb/dwc3/dwc3-msm.c:2785:		dbg_event(0xFF, "Q RW (vbus)", mdwc->vbus_active);
+drivers/usb/dwc3/dwc3-msm.c:2786:		queue_work(mdwc->dwc3_wq, &mdwc->resume_work);
+drivers/usb/dwc3/dwc3-msm.c:2794:	struct device_node *node = mdwc->dev->of_node;
+drivers/usb/dwc3/dwc3-msm.c:2799:	dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2801:		dev_dbg(mdwc->dev, "extcon property doesn't exist\n");
+drivers/usb/dwc3/dwc3-msm.c:2802:		if (usb_get_dr_mode(&mdwc->dwc3->dev) == USB_DR_MODE_HOST
+drivers/usb/dwc3/dwc3-msm.c:2805:		dev_err(mdwc->dev, "Neither host nor DRD, fail probe\n");
+drivers/usb/dwc3/dwc3-msm.c:2809:	edev = extcon_get_edev_by_phandle(mdwc->dev, 0);
+drivers/usb/dwc3/dwc3-msm.c:2814:		mdwc->extcon_vbus = edev;
+drivers/usb/dwc3/dwc3-msm.c:2815:		mdwc->vbus_nb.notifier_call = dwc3_msm_vbus_notifier;
+drivers/usb/dwc3/dwc3-msm.c:2817:				&mdwc->vbus_nb);
+drivers/usb/dwc3/dwc3-msm.c:2819:			dev_err(mdwc->dev, "failed to register notifier for USB\n");
+drivers/usb/dwc3/dwc3-msm.c:2826:		edev = extcon_get_edev_by_phandle(mdwc->dev, 1);
+drivers/usb/dwc3/dwc3-msm.c:2834:		mdwc->extcon_id = edev;
+drivers/usb/dwc3/dwc3-msm.c:2835:		mdwc->id_nb.notifier_call = dwc3_msm_id_notifier;
+drivers/usb/dwc3/dwc3-msm.c:2837:				&mdwc->id_nb);
+drivers/usb/dwc3/dwc3-msm.c:2839:			dev_err(mdwc->dev, "failed to register notifier for USB-HOST\n");
+drivers/usb/dwc3/dwc3-msm.c:2846:	if (mdwc->extcon_vbus)
+drivers/usb/dwc3/dwc3-msm.c:2847:		extcon_unregister_notifier(mdwc->extcon_vbus, EXTCON_USB,
+drivers/usb/dwc3/dwc3-msm.c:2848:				&mdwc->vbus_nb);
+drivers/usb/dwc3/dwc3-msm.c:2857:	if (mdwc->vbus_active)
+drivers/usb/dwc3/dwc3-msm.c:2859:	if (mdwc->id_state == DWC3_ID_GROUND)
+drivers/usb/dwc3/dwc3-msm.c:2871:		mdwc->vbus_active = true;
+drivers/usb/dwc3/dwc3-msm.c:2872:		mdwc->id_state = DWC3_ID_FLOAT;
+drivers/usb/dwc3/dwc3-msm.c:2874:		mdwc->vbus_active = false;
+drivers/usb/dwc3/dwc3-msm.c:2875:		mdwc->id_state = DWC3_ID_GROUND;
+drivers/usb/dwc3/dwc3-msm.c:2877:		mdwc->vbus_active = false;
+drivers/usb/dwc3/dwc3-msm.c:2878:		mdwc->id_state = DWC3_ID_FLOAT;
+drivers/usb/dwc3/dwc3-msm.c:2892:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2902:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:2913:		schedule_work(&mdwc->restart_usb_work);
+drivers/usb/dwc3/dwc3-msm.c:2926:	if (mdwc->xhci_ss_compliance_enable)
+drivers/usb/dwc3/dwc3-msm.c:2941:		mdwc->xhci_ss_compliance_enable = value;
+drivers/usb/dwc3/dwc3-msm.c:2977:	mdwc->dev = &pdev->dev;
+drivers/usb/dwc3/dwc3-msm.c:2979:	INIT_LIST_HEAD(&mdwc->req_complete_list);
+drivers/usb/dwc3/dwc3-msm.c:2980:	INIT_WORK(&mdwc->resume_work, dwc3_resume_work);
+drivers/usb/dwc3/dwc3-msm.c:2981:	INIT_WORK(&mdwc->restart_usb_work, dwc3_restart_usb_work);
+drivers/usb/dwc3/dwc3-msm.c:2982:	INIT_WORK(&mdwc->bus_vote_w, dwc3_msm_bus_vote_w);
+drivers/usb/dwc3/dwc3-msm.c:2983:	INIT_WORK(&mdwc->vbus_draw_work, dwc3_msm_vbus_draw_work);
+drivers/usb/dwc3/dwc3-msm.c:2984:	INIT_DELAYED_WORK(&mdwc->sm_work, dwc3_otg_sm_work);
+drivers/usb/dwc3/dwc3-msm.c:2985:	INIT_DELAYED_WORK(&mdwc->perf_vote_work, msm_dwc3_perf_vote_work);
+drivers/usb/dwc3/dwc3-msm.c:2986:	INIT_DELAYED_WORK(&mdwc->sdp_check, check_for_sdp_connection);
+drivers/usb/dwc3/dwc3-msm.c:2988:	mdwc->dwc3_wq = alloc_ordered_workqueue("dwc3_wq", 0);
+drivers/usb/dwc3/dwc3-msm.c:2989:	if (!mdwc->dwc3_wq) {
+drivers/usb/dwc3/dwc3-msm.c:3001:	mdwc->id_state = DWC3_ID_FLOAT;
+drivers/usb/dwc3/dwc3-msm.c:3002:	set_bit(ID, &mdwc->inputs);
+drivers/usb/dwc3/dwc3-msm.c:3004:	mdwc->charging_disabled = of_property_read_bool(node,
+drivers/usb/dwc3/dwc3-msm.c:3008:				&mdwc->lpm_to_suspend_delay);
+drivers/usb/dwc3/dwc3-msm.c:3011:		mdwc->lpm_to_suspend_delay = 0;
+drivers/usb/dwc3/dwc3-msm.c:3018:	mdwc->hs_phy_irq = platform_get_irq_byname(pdev, "hs_phy_irq");
+drivers/usb/dwc3/dwc3-msm.c:3019:	if (mdwc->hs_phy_irq < 0) {
+drivers/usb/dwc3/dwc3-msm.c:3024:		irq_set_status_flags(mdwc->hs_phy_irq, IRQ_NOAUTOEN);
+drivers/usb/dwc3/dwc3-msm.c:3025:		ret = devm_request_threaded_irq(&pdev->dev, mdwc->hs_phy_irq,
+drivers/usb/dwc3/dwc3-msm.c:3037:	mdwc->ss_phy_irq = platform_get_irq_byname(pdev, "ss_phy_irq");
+drivers/usb/dwc3/dwc3-msm.c:3038:	if (mdwc->ss_phy_irq < 0) {
+drivers/usb/dwc3/dwc3-msm.c:3041:		irq_set_status_flags(mdwc->ss_phy_irq, IRQ_NOAUTOEN);
+drivers/usb/dwc3/dwc3-msm.c:3042:		ret = devm_request_threaded_irq(&pdev->dev, mdwc->ss_phy_irq,
+drivers/usb/dwc3/dwc3-msm.c:3055:	mdwc->pwr_event_irq = platform_get_irq_byname(pdev, "pwr_event_irq");
+drivers/usb/dwc3/dwc3-msm.c:3056:	if (mdwc->pwr_event_irq < 0) {
+drivers/usb/dwc3/dwc3-msm.c:3062:		irq_set_status_flags(mdwc->pwr_event_irq, IRQ_NOAUTOEN);
+drivers/usb/dwc3/dwc3-msm.c:3063:		ret = devm_request_threaded_irq(&pdev->dev, mdwc->pwr_event_irq,
+drivers/usb/dwc3/dwc3-msm.c:3101:	mdwc->base = devm_ioremap_nocache(&pdev->dev, res->start,
+drivers/usb/dwc3/dwc3-msm.c:3103:	if (!mdwc->base) {
+drivers/usb/dwc3/dwc3-msm.c:3112:		mdwc->ahb2phy_base = devm_ioremap_nocache(&pdev->dev,
+drivers/usb/dwc3/dwc3-msm.c:3114:		if (IS_ERR_OR_NULL(mdwc->ahb2phy_base)) {
+drivers/usb/dwc3/dwc3-msm.c:3116:			mdwc->ahb2phy_base = NULL;
+drivers/usb/dwc3/dwc3-msm.c:3124:			clk_prepare_enable(mdwc->cfg_ahb_clk);
+drivers/usb/dwc3/dwc3-msm.c:3126:			val = readl_relaxed(mdwc->ahb2phy_base +
+drivers/usb/dwc3/dwc3-msm.c:3130:					mdwc->ahb2phy_base +
+drivers/usb/dwc3/dwc3-msm.c:3135:			clk_disable_unprepare(mdwc->cfg_ahb_clk);
+drivers/usb/dwc3/dwc3-msm.c:3141:		mdwc->dbm = usb_get_dbm_by_phandle(&pdev->dev, "qcom,usb-dbm");
+drivers/usb/dwc3/dwc3-msm.c:3142:		if (IS_ERR(mdwc->dbm)) {
+drivers/usb/dwc3/dwc3-msm.c:3151:		if (dbm_l1_lpm_interrupt(mdwc->dbm)) {
+drivers/usb/dwc3/dwc3-msm.c:3152:			if (!mdwc->pwr_event_irq) {
+drivers/usb/dwc3/dwc3-msm.c:3178:				 &mdwc->tx_fifo_size))
+drivers/usb/dwc3/dwc3-msm.c:3182:	mdwc->disable_host_mode_pm = of_property_read_bool(node,
+drivers/usb/dwc3/dwc3-msm.c:3203:	mdwc->dwc3 = of_find_device_by_node(dwc3_node);
+drivers/usb/dwc3/dwc3-msm.c:3205:	if (!mdwc->dwc3) {
+drivers/usb/dwc3/dwc3-msm.c:3210:	mdwc->hs_phy = devm_usb_get_phy_by_phandle(&mdwc->dwc3->dev,
+drivers/usb/dwc3/dwc3-msm.c:3212:	if (IS_ERR(mdwc->hs_phy)) {
+drivers/usb/dwc3/dwc3-msm.c:3214:		ret = PTR_ERR(mdwc->hs_phy);
+drivers/usb/dwc3/dwc3-msm.c:3217:	mdwc->ss_phy = devm_usb_get_phy_by_phandle(&mdwc->dwc3->dev,
+drivers/usb/dwc3/dwc3-msm.c:3219:	if (IS_ERR(mdwc->ss_phy)) {
+drivers/usb/dwc3/dwc3-msm.c:3221:		ret = PTR_ERR(mdwc->ss_phy);
+drivers/usb/dwc3/dwc3-msm.c:3225:	mdwc->bus_scale_table = msm_bus_cl_get_pdata(pdev);
+drivers/usb/dwc3/dwc3-msm.c:3226:	if (mdwc->bus_scale_table) {
+drivers/usb/dwc3/dwc3-msm.c:3227:		mdwc->bus_perf_client =
+drivers/usb/dwc3/dwc3-msm.c:3228:			msm_bus_scale_register_client(mdwc->bus_scale_table);
+drivers/usb/dwc3/dwc3-msm.c:3231:	dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:3237:	mdwc->irq_to_affin = platform_get_irq(mdwc->dwc3, 0);
+drivers/usb/dwc3/dwc3-msm.c:3238:	mdwc->dwc3_cpu_notifier.notifier_call = dwc3_cpu_notifier_cb;
+drivers/usb/dwc3/dwc3-msm.c:3241:		register_cpu_notifier(&mdwc->dwc3_cpu_notifier);
+drivers/usb/dwc3/dwc3-msm.c:3248:	mdwc->lpm_flags = MDWC3_POWER_COLLAPSE | MDWC3_SS_PHY_SUSPEND;
+drivers/usb/dwc3/dwc3-msm.c:3250:	pm_runtime_set_autosuspend_delay(mdwc->dev, 1000);
+drivers/usb/dwc3/dwc3-msm.c:3251:	pm_runtime_use_autosuspend(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3252:	device_init_wakeup(mdwc->dev, 1);
+drivers/usb/dwc3/dwc3-msm.c:3255:		pm_runtime_get_noresume(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3262:				&mdwc->pm_qos_latency);
+drivers/usb/dwc3/dwc3-msm.c:3265:		mdwc->pm_qos_latency = 0;
+drivers/usb/dwc3/dwc3-msm.c:3268:	mdwc->usb_psy = power_supply_get_by_name("usb");
+drivers/usb/dwc3/dwc3-msm.c:3269:	if (!mdwc->usb_psy) {
+drivers/usb/dwc3/dwc3-msm.c:3270:		dev_warn(mdwc->dev, "Could not get usb power_supply\n");
+drivers/usb/dwc3/dwc3-msm.c:3273:		power_supply_get_property(mdwc->usb_psy,
+drivers/usb/dwc3/dwc3-msm.c:3277:	mutex_init(&mdwc->suspend_resume_mutex);
+drivers/usb/dwc3/dwc3-msm.c:3279:	if (mdwc->extcon_vbus && extcon_get_cable_state_(mdwc->extcon_vbus,
+drivers/usb/dwc3/dwc3-msm.c:3281:		dwc3_msm_vbus_notifier(&mdwc->vbus_nb, true, mdwc->extcon_vbus);
+drivers/usb/dwc3/dwc3-msm.c:3282:	else if (mdwc->extcon_id && extcon_get_cable_state_(mdwc->extcon_id,
+drivers/usb/dwc3/dwc3-msm.c:3284:		dwc3_msm_id_notifier(&mdwc->id_nb, true, mdwc->extcon_id);
+drivers/usb/dwc3/dwc3-msm.c:3287:		queue_delayed_work(system_freezable_wq, &mdwc->sm_work, 0);
+drivers/usb/dwc3/dwc3-msm.c:3290:			dev_info(mdwc->dev, "charger detection in progress\n");
+drivers/usb/dwc3/dwc3-msm.c:3297:	host_mode = usb_get_dr_mode(&mdwc->dwc3->dev) == USB_DR_MODE_HOST;
+drivers/usb/dwc3/dwc3-msm.c:3301:		mdwc->host_only_mode = true;
+drivers/usb/dwc3/dwc3-msm.c:3302:		mdwc->id_state = DWC3_ID_GROUND;
+drivers/usb/dwc3/dwc3-msm.c:3309:	if (mdwc->bus_perf_client)
+drivers/usb/dwc3/dwc3-msm.c:3310:		msm_bus_scale_unregister_client(mdwc->bus_perf_client);
+drivers/usb/dwc3/dwc3-msm.c:3313:	destroy_workqueue(mdwc->dwc3_wq);
+drivers/usb/dwc3/dwc3-msm.c:3326:		unregister_cpu_notifier(&mdwc->dwc3_cpu_notifier);
+drivers/usb/dwc3/dwc3-msm.c:3332:	ret_pm = pm_runtime_get_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3335:		dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:3337:		if (mdwc->noc_aggr_clk)
+drivers/usb/dwc3/dwc3-msm.c:3338:			clk_prepare_enable(mdwc->noc_aggr_clk);
+drivers/usb/dwc3/dwc3-msm.c:3339:		clk_prepare_enable(mdwc->utmi_clk);
+drivers/usb/dwc3/dwc3-msm.c:3340:		clk_prepare_enable(mdwc->core_clk);
+drivers/usb/dwc3/dwc3-msm.c:3341:		clk_prepare_enable(mdwc->iface_clk);
+drivers/usb/dwc3/dwc3-msm.c:3342:		clk_prepare_enable(mdwc->sleep_clk);
+drivers/usb/dwc3/dwc3-msm.c:3343:		if (mdwc->bus_aggr_clk)
+drivers/usb/dwc3/dwc3-msm.c:3344:			clk_prepare_enable(mdwc->bus_aggr_clk);
+drivers/usb/dwc3/dwc3-msm.c:3345:		clk_prepare_enable(mdwc->xo_clk);
+drivers/usb/dwc3/dwc3-msm.c:3348:	cancel_delayed_work_sync(&mdwc->perf_vote_work);
+drivers/usb/dwc3/dwc3-msm.c:3349:	cancel_delayed_work_sync(&mdwc->sm_work);
+drivers/usb/dwc3/dwc3-msm.c:3351:	if (mdwc->hs_phy)
+drivers/usb/dwc3/dwc3-msm.c:3352:		mdwc->hs_phy->flags &= ~PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3356:	pm_runtime_disable(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3357:	pm_runtime_barrier(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3358:	pm_runtime_put_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3359:	pm_runtime_set_suspended(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3360:	device_wakeup_disable(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3362:	if (mdwc->bus_perf_client)
+drivers/usb/dwc3/dwc3-msm.c:3363:		msm_bus_scale_unregister_client(mdwc->bus_perf_client);
+drivers/usb/dwc3/dwc3-msm.c:3365:	if (!IS_ERR_OR_NULL(mdwc->vbus_reg))
+drivers/usb/dwc3/dwc3-msm.c:3366:		regulator_disable(mdwc->vbus_reg);
+drivers/usb/dwc3/dwc3-msm.c:3368:	disable_irq(mdwc->hs_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:3369:	if (mdwc->ss_phy_irq)
+drivers/usb/dwc3/dwc3-msm.c:3370:		disable_irq(mdwc->ss_phy_irq);
+drivers/usb/dwc3/dwc3-msm.c:3371:	disable_irq(mdwc->pwr_event_irq);
+drivers/usb/dwc3/dwc3-msm.c:3373:	clk_disable_unprepare(mdwc->utmi_clk);
+drivers/usb/dwc3/dwc3-msm.c:3374:	clk_set_rate(mdwc->core_clk, 19200000);
+drivers/usb/dwc3/dwc3-msm.c:3375:	clk_disable_unprepare(mdwc->core_clk);
+drivers/usb/dwc3/dwc3-msm.c:3376:	clk_disable_unprepare(mdwc->iface_clk);
+drivers/usb/dwc3/dwc3-msm.c:3377:	clk_disable_unprepare(mdwc->sleep_clk);
+drivers/usb/dwc3/dwc3-msm.c:3378:	clk_disable_unprepare(mdwc->xo_clk);
+drivers/usb/dwc3/dwc3-msm.c:3379:	clk_put(mdwc->xo_clk);
+drivers/usb/dwc3/dwc3-msm.c:3390:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:3398:	if (!mdwc->usb_psy) {
+drivers/usb/dwc3/dwc3-msm.c:3399:		mdwc->usb_psy = power_supply_get_by_name("usb");
+drivers/usb/dwc3/dwc3-msm.c:3400:		if (!mdwc->usb_psy)
+drivers/usb/dwc3/dwc3-msm.c:3417:				clk_set_rate(mdwc->core_clk,
+drivers/usb/dwc3/dwc3-msm.c:3418:				mdwc->core_clk_rate_hs);
+drivers/usb/dwc3/dwc3-msm.c:3419:				dev_dbg(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:3421:					mdwc->core_clk_rate_hs);
+drivers/usb/dwc3/dwc3-msm.c:3422:				mdwc->max_rh_port_speed = USB_SPEED_HIGH;
+drivers/usb/dwc3/dwc3-msm.c:3424:				mdwc->max_rh_port_speed = USB_SPEED_SUPER;
+drivers/usb/dwc3/dwc3-msm.c:3432:			dev_dbg(mdwc->dev, "%s configured bMaxPower:%d (mA)\n",
+drivers/usb/dwc3/dwc3-msm.c:3437:			power_supply_set_property(mdwc->usb_psy,
+drivers/usb/dwc3/dwc3-msm.c:3441:			power_supply_set_property(mdwc->usb_psy,
+drivers/usb/dwc3/dwc3-msm.c:3445:			clk_set_rate(mdwc->core_clk, mdwc->core_clk_rate);
+drivers/usb/dwc3/dwc3-msm.c:3446:			dev_dbg(mdwc->dev, "set core clk rate %ld\n",
+drivers/usb/dwc3/dwc3-msm.c:3447:				mdwc->core_clk_rate);
+drivers/usb/dwc3/dwc3-msm.c:3448:			mdwc->max_rh_port_speed = USB_SPEED_UNKNOWN;
+drivers/usb/dwc3/dwc3-msm.c:3458:	int latency = mdwc->pm_qos_latency;
+drivers/usb/dwc3/dwc3-msm.c:3464:		pm_qos_update_request(&mdwc->pm_qos_req_dma, latency);
+drivers/usb/dwc3/dwc3-msm.c:3466:		pm_qos_update_request(&mdwc->pm_qos_req_dma,
+drivers/usb/dwc3/dwc3-msm.c:3478:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:3480:	int latency = mdwc->pm_qos_latency;
+drivers/usb/dwc3/dwc3-msm.c:3493:	schedule_delayed_work(&mdwc->perf_vote_work,
+drivers/usb/dwc3/dwc3-msm.c:3509:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:3521:	if (!mdwc->vbus_reg) {
+drivers/usb/dwc3/dwc3-msm.c:3522:		mdwc->vbus_reg = devm_regulator_get_optional(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:3524:		if (IS_ERR(mdwc->vbus_reg) &&
+drivers/usb/dwc3/dwc3-msm.c:3525:				PTR_ERR(mdwc->vbus_reg) == -EPROBE_DEFER) {
+drivers/usb/dwc3/dwc3-msm.c:3527:			mdwc->vbus_reg = NULL;
+drivers/usb/dwc3/dwc3-msm.c:3533:		dev_dbg(mdwc->dev, "%s: turn on host\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:3535:		mdwc->hs_phy->flags |= PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3537:			mdwc->ss_phy->flags |= PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3538:			usb_phy_notify_connect(mdwc->ss_phy,
+drivers/usb/dwc3/dwc3-msm.c:3542:		usb_phy_notify_connect(mdwc->hs_phy, USB_SPEED_HIGH);
+drivers/usb/dwc3/dwc3-msm.c:3543:		pm_runtime_get_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3545:			atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3546:		if (!IS_ERR(mdwc->vbus_reg))
+drivers/usb/dwc3/dwc3-msm.c:3547:			ret = regulator_enable(mdwc->vbus_reg);
+drivers/usb/dwc3/dwc3-msm.c:3549:			dev_err(mdwc->dev, "unable to enable vbus_reg\n");
+drivers/usb/dwc3/dwc3-msm.c:3550:			mdwc->hs_phy->flags &= ~PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3551:			mdwc->ss_phy->flags &= ~PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3552:			pm_runtime_put_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3554:				atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3560:		mdwc->host_nb.notifier_call = dwc3_msm_host_notifier;
+drivers/usb/dwc3/dwc3-msm.c:3561:		usb_register_notify(&mdwc->host_nb);
+drivers/usb/dwc3/dwc3-msm.c:3563:		mdwc->usbdev_nb.notifier_call = msm_dwc3_usbdev_notify;
+drivers/usb/dwc3/dwc3-msm.c:3564:		usb_register_atomic_notify(&mdwc->usbdev_nb);
+drivers/usb/dwc3/dwc3-msm.c:3575:			dev_err(mdwc->dev,
+drivers/usb/dwc3/dwc3-msm.c:3578:			if (!IS_ERR(mdwc->vbus_reg))
+drivers/usb/dwc3/dwc3-msm.c:3579:				regulator_disable(mdwc->vbus_reg);
+drivers/usb/dwc3/dwc3-msm.c:3580:			mdwc->hs_phy->flags &= ~PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3581:			mdwc->ss_phy->flags &= ~PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3582:			pm_runtime_put_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3584:				atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3585:			usb_unregister_notify(&mdwc->host_nb);
+drivers/usb/dwc3/dwc3-msm.c:3599:		if (HCC_CTC(dwc3_msm_read_reg(mdwc->base, USB3_HCCPARAMS2))
+drivers/usb/dwc3/dwc3-msm.c:3600:				&& mdwc->xhci_ss_compliance_enable
+drivers/usb/dwc3/dwc3-msm.c:3602:			dwc3_msm_write_reg(mdwc->base, USB3_PORTSC + 0x10,
+drivers/usb/dwc3/dwc3-msm.c:3613:		if (mdwc->disable_host_mode_pm)
+drivers/usb/dwc3/dwc3-msm.c:3616:		mdwc->in_host_mode = true;
+drivers/usb/dwc3/dwc3-msm.c:3621:			atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3622:		pm_runtime_mark_last_busy(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3623:		pm_runtime_put_sync_autosuspend(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3625:		mdwc->pm_qos_req_dma.type = PM_QOS_REQ_AFFINE_IRQ;
+drivers/usb/dwc3/dwc3-msm.c:3626:		mdwc->pm_qos_req_dma.irq = dwc->irq;
+drivers/usb/dwc3/dwc3-msm.c:3628:		pm_qos_add_request(&mdwc->pm_qos_req_dma,
+drivers/usb/dwc3/dwc3-msm.c:3632:		schedule_delayed_work(&mdwc->perf_vote_work,
+drivers/usb/dwc3/dwc3-msm.c:3635:		dev_dbg(mdwc->dev, "%s: turn off host\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:3637:		usb_unregister_atomic_notify(&mdwc->usbdev_nb);
+drivers/usb/dwc3/dwc3-msm.c:3638:		if (!IS_ERR(mdwc->vbus_reg))
+drivers/usb/dwc3/dwc3-msm.c:3639:			ret = regulator_disable(mdwc->vbus_reg);
+drivers/usb/dwc3/dwc3-msm.c:3641:			dev_err(mdwc->dev, "unable to disable vbus_reg\n");
+drivers/usb/dwc3/dwc3-msm.c:3645:		cancel_delayed_work_sync(&mdwc->perf_vote_work);
+drivers/usb/dwc3/dwc3-msm.c:3647:		pm_qos_remove_request(&mdwc->pm_qos_req_dma);
+drivers/usb/dwc3/dwc3-msm.c:3649:		pm_runtime_get_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3651:			atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3652:		usb_phy_notify_disconnect(mdwc->hs_phy, USB_SPEED_HIGH);
+drivers/usb/dwc3/dwc3-msm.c:3653:		if (mdwc->ss_phy->flags & PHY_HOST_MODE) {
+drivers/usb/dwc3/dwc3-msm.c:3654:			usb_phy_notify_disconnect(mdwc->ss_phy,
+drivers/usb/dwc3/dwc3-msm.c:3656:			mdwc->ss_phy->flags &= ~PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3659:		mdwc->hs_phy->flags &= ~PHY_HOST_MODE;
+drivers/usb/dwc3/dwc3-msm.c:3661:		usb_unregister_notify(&mdwc->host_nb);
+drivers/usb/dwc3/dwc3-msm.c:3673:		mdwc->in_host_mode = false;
+drivers/usb/dwc3/dwc3-msm.c:3676:		if (!mdwc->host_only_mode)
+drivers/usb/dwc3/dwc3-msm.c:3679:		pm_runtime_mark_last_busy(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3680:		pm_runtime_put_sync_autosuspend(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3682:			atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3690:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:3693:	dwc3_msm_write_readback(mdwc->base, HS_PHY_CTRL_REG,
+drivers/usb/dwc3/dwc3-msm.c:3701:		dwc3_msm_write_readback(mdwc->base, SS_PHY_CTRL_REG,
+drivers/usb/dwc3/dwc3-msm.c:3717:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:3719:	pm_runtime_get_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3721:		atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3724:		dev_dbg(mdwc->dev, "%s: turn on gadget %s\n",
+drivers/usb/dwc3/dwc3-msm.c:3728:		usb_phy_notify_connect(mdwc->hs_phy, USB_SPEED_HIGH);
+drivers/usb/dwc3/dwc3-msm.c:3729:		usb_phy_notify_connect(mdwc->ss_phy, USB_SPEED_SUPER);
+drivers/usb/dwc3/dwc3-msm.c:3738:		mdwc->pm_qos_req_dma.type = PM_QOS_REQ_AFFINE_IRQ;
+drivers/usb/dwc3/dwc3-msm.c:3739:		mdwc->pm_qos_req_dma.irq = dwc->irq;
+drivers/usb/dwc3/dwc3-msm.c:3741:		pm_qos_add_request(&mdwc->pm_qos_req_dma,
+drivers/usb/dwc3/dwc3-msm.c:3745:		schedule_delayed_work(&mdwc->perf_vote_work,
+drivers/usb/dwc3/dwc3-msm.c:3748:		dev_dbg(mdwc->dev, "%s: turn off gadget %s\n",
+drivers/usb/dwc3/dwc3-msm.c:3750:		cancel_delayed_work_sync(&mdwc->perf_vote_work);
+drivers/usb/dwc3/dwc3-msm.c:3752:		pm_qos_remove_request(&mdwc->pm_qos_req_dma);
+drivers/usb/dwc3/dwc3-msm.c:3755:		usb_phy_notify_disconnect(mdwc->hs_phy, USB_SPEED_HIGH);
+drivers/usb/dwc3/dwc3-msm.c:3756:		usb_phy_notify_disconnect(mdwc->ss_phy, USB_SPEED_SUPER);
+drivers/usb/dwc3/dwc3-msm.c:3761:	pm_runtime_put_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3763:		atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3772:	if (mdwc->charging_disabled)
+drivers/usb/dwc3/dwc3-msm.c:3775:	if (!mdwc->usb_psy) {
+drivers/usb/dwc3/dwc3-msm.c:3776:		mdwc->usb_psy = power_supply_get_by_name("usb");
+drivers/usb/dwc3/dwc3-msm.c:3777:		if (!mdwc->usb_psy) {
+drivers/usb/dwc3/dwc3-msm.c:3778:			dev_err(mdwc->dev, "Could not get usb psy\n");
+drivers/usb/dwc3/dwc3-msm.c:3783:	power_supply_get_property(mdwc->usb_psy, POWER_SUPPLY_PROP_REAL_TYPE,
+drivers/usb/dwc3/dwc3-msm.c:3800:	if (mdwc->max_power == mA || psy_type != POWER_SUPPLY_TYPE_USB)
+drivers/usb/dwc3/dwc3-msm.c:3803:	dev_info(mdwc->dev, "Avail curr from USB = %u\n", mA);
+drivers/usb/dwc3/dwc3-msm.c:3808:	ret = power_supply_set_property(mdwc->usb_psy,
+drivers/usb/dwc3/dwc3-msm.c:3811:		dev_dbg(mdwc->dev, "power supply error when setting property\n");
+drivers/usb/dwc3/dwc3-msm.c:3815:	mdwc->max_power = mA;
+drivers/usb/dwc3/dwc3-msm.c:3836:	if (mdwc->dwc3)
+drivers/usb/dwc3/dwc3-msm.c:3837:		dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:3840:		dev_err(mdwc->dev, "dwc is NULL.\n");
+drivers/usb/dwc3/dwc3-msm.c:3844:	state = usb_otg_state_string(mdwc->otg_state);
+drivers/usb/dwc3/dwc3-msm.c:3845:	dev_dbg(mdwc->dev, "%s state\n", state);
+drivers/usb/dwc3/dwc3-msm.c:3849:	switch (mdwc->otg_state) {
+drivers/usb/dwc3/dwc3-msm.c:3852:		if (test_bit(ID, &mdwc->inputs) &&
+drivers/usb/dwc3/dwc3-msm.c:3853:				!test_bit(B_SESS_VLD, &mdwc->inputs)) {
+drivers/usb/dwc3/dwc3-msm.c:3855:			pm_runtime_set_active(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3856:			pm_runtime_enable(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3857:			pm_runtime_get_noresume(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3859:			pm_runtime_put_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3861:				atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3862:			mdwc->otg_state = OTG_STATE_B_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3867:		mdwc->otg_state = OTG_STATE_B_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3868:		pm_runtime_set_suspended(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3869:		pm_runtime_enable(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3872:		if (!test_bit(ID, &mdwc->inputs)) {
+drivers/usb/dwc3/dwc3-msm.c:3873:			dev_dbg(mdwc->dev, "!id\n");
+drivers/usb/dwc3/dwc3-msm.c:3874:			mdwc->otg_state = OTG_STATE_A_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3876:		} else if (test_bit(B_SESS_VLD, &mdwc->inputs)) {
+drivers/usb/dwc3/dwc3-msm.c:3877:			dev_dbg(mdwc->dev, "b_sess_vld\n");
+drivers/usb/dwc3/dwc3-msm.c:3879:				queue_delayed_work(mdwc->dwc3_wq,
+drivers/usb/dwc3/dwc3-msm.c:3880:						&mdwc->sdp_check,
+drivers/usb/dwc3/dwc3-msm.c:3887:			pm_runtime_get_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3889:				atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3891:			mdwc->otg_state = OTG_STATE_B_PERIPHERAL;
+drivers/usb/dwc3/dwc3-msm.c:3896:			dev_dbg(mdwc->dev, "Cable disconnected\n");
+drivers/usb/dwc3/dwc3-msm.c:3901:		if (!test_bit(B_SESS_VLD, &mdwc->inputs) ||
+drivers/usb/dwc3/dwc3-msm.c:3902:				!test_bit(ID, &mdwc->inputs)) {
+drivers/usb/dwc3/dwc3-msm.c:3903:			dev_dbg(mdwc->dev, "!id || !bsv\n");
+drivers/usb/dwc3/dwc3-msm.c:3904:			mdwc->otg_state = OTG_STATE_B_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3905:			cancel_delayed_work_sync(&mdwc->sdp_check);
+drivers/usb/dwc3/dwc3-msm.c:3912:			pm_runtime_put_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3914:				atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3916:		} else if (test_bit(B_SUSPEND, &mdwc->inputs) &&
+drivers/usb/dwc3/dwc3-msm.c:3917:			test_bit(B_SESS_VLD, &mdwc->inputs)) {
+drivers/usb/dwc3/dwc3-msm.c:3918:			dev_dbg(mdwc->dev, "BPER bsv && susp\n");
+drivers/usb/dwc3/dwc3-msm.c:3919:			mdwc->otg_state = OTG_STATE_B_SUSPEND;
+drivers/usb/dwc3/dwc3-msm.c:3927:			pm_runtime_mark_last_busy(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3928:			pm_runtime_put_autosuspend(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3930:				atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3935:		if (!test_bit(B_SESS_VLD, &mdwc->inputs)) {
+drivers/usb/dwc3/dwc3-msm.c:3936:			dev_dbg(mdwc->dev, "BSUSP: !bsv\n");
+drivers/usb/dwc3/dwc3-msm.c:3937:			mdwc->otg_state = OTG_STATE_B_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3938:			cancel_delayed_work_sync(&mdwc->sdp_check);
+drivers/usb/dwc3/dwc3-msm.c:3940:		} else if (!test_bit(B_SUSPEND, &mdwc->inputs)) {
+drivers/usb/dwc3/dwc3-msm.c:3941:			dev_dbg(mdwc->dev, "BSUSP !susp\n");
+drivers/usb/dwc3/dwc3-msm.c:3942:			mdwc->otg_state = OTG_STATE_B_PERIPHERAL;
+drivers/usb/dwc3/dwc3-msm.c:3949:			pm_runtime_get_sync(mdwc->dev);
+drivers/usb/dwc3/dwc3-msm.c:3951:				atomic_read(&mdwc->dev->power.usage_count));
+drivers/usb/dwc3/dwc3-msm.c:3957:		if (test_bit(ID, &mdwc->inputs)) {
+drivers/usb/dwc3/dwc3-msm.c:3958:			dev_dbg(mdwc->dev, "id\n");
+drivers/usb/dwc3/dwc3-msm.c:3959:			mdwc->otg_state = OTG_STATE_B_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3960:			mdwc->vbus_retry_count = 0;
+drivers/usb/dwc3/dwc3-msm.c:3963:			mdwc->otg_state = OTG_STATE_A_HOST;
+drivers/usb/dwc3/dwc3-msm.c:3966:						mdwc->vbus_retry_count < 3) {
+drivers/usb/dwc3/dwc3-msm.c:3971:				mdwc->otg_state = OTG_STATE_A_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3972:				dev_dbg(mdwc->dev, "Unable to get vbus regulator. Retrying...\n");
+drivers/usb/dwc3/dwc3-msm.c:3975:				mdwc->vbus_retry_count++;
+drivers/usb/dwc3/dwc3-msm.c:3977:				dev_err(mdwc->dev, "unable to start host\n");
+drivers/usb/dwc3/dwc3-msm.c:3978:				mdwc->otg_state = OTG_STATE_A_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3985:		if (test_bit(ID, &mdwc->inputs) || mdwc->hc_died) {
+drivers/usb/dwc3/dwc3-msm.c:3986:			dev_dbg(mdwc->dev, "id || hc_died\n");
+drivers/usb/dwc3/dwc3-msm.c:3988:			mdwc->otg_state = OTG_STATE_B_IDLE;
+drivers/usb/dwc3/dwc3-msm.c:3989:			mdwc->vbus_retry_count = 0;
+drivers/usb/dwc3/dwc3-msm.c:3990:			mdwc->hc_died = false;
+drivers/usb/dwc3/dwc3-msm.c:3993:			dev_dbg(mdwc->dev, "still in a_host state. Resuming root hub.\n");
+drivers/usb/dwc3/dwc3-msm.c:4001:		dev_err(mdwc->dev, "%s: invalid otg-state\n", __func__);
+drivers/usb/dwc3/dwc3-msm.c:4006:		queue_delayed_work(system_freezable_wq, &mdwc->sm_work, delay);
+drivers/usb/dwc3/dwc3-msm.c:4017:	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+drivers/usb/dwc3/dwc3-msm.c:4022:	flush_workqueue(mdwc->dwc3_wq);
+drivers/usb/dwc3/dwc3-msm.c:4024:		dev_err(mdwc->dev, "Abort PM suspend!! (USB is outside LPM)\n");
+drivers/usb/dwc3/dwc3-msm.c:4030:		atomic_set(&mdwc->pm_suspended, 1);
+drivers/usb/dwc3/dwc3-msm.c:4044:	flush_workqueue(mdwc->dwc3_wq);
+drivers/usb/dwc3/dwc3-msm.c:4045:	atomic_set(&mdwc->pm_suspended, 0);
+drivers/usb/dwc3/dwc3-msm.c:4048:	queue_work(mdwc->dwc3_wq, &mdwc->resume_work);

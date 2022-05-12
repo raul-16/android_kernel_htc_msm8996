@@ -42,6 +42,9 @@ enum ldo_levels {
 
 #define USB_SSPHY_LOAD_DEFAULT		-1
 
+#define USB3_QSERDES_TX_EMP_POST1_LVL 0x218
+#define USB3_QSERDES_TX_DRV_LVL 0x22C
+
 /* USB3PHY_PCIE_USB3_PCS_PCS_STATUS bit */
 #define PHYSTATUS				BIT(6)
 
@@ -56,6 +59,14 @@ enum ldo_levels {
 #define SW_PORTSELECT		BIT(0)
 /* port select mux: 1 - sw control. 0 - HW control*/
 #define SW_PORTSELECT_MX	BIT(1)
+
+unsigned int tx_drv;
+module_param(tx_drv, uint, S_IRUGO | S_IWUSR);
+MODULE_PARM_DESC(tx_drv, "QMP SSUSB PHY TX DRV");
+
+unsigned int tx_emp;
+module_param(tx_emp, uint, S_IRUGO | S_IWUSR);
+MODULE_PARM_DESC(tx_emp, "QMP SSUSB PHY TX EMP");
 
 enum qmp_phy_rev_reg {
 	USB3_PHY_PCS_STATUS,
@@ -290,6 +301,7 @@ static int msm_ssphy_qmp_init(struct usb_phy *uphy)
 					phy);
 	int ret, val;
 	unsigned init_timeout_usec = INIT_MAX_TIME_USEC;
+	u8 temp;
 	const struct qmp_reg_val *reg = NULL;
 
 	dev_dbg(uphy->dev, "Initializing QMP phy\n");
@@ -330,6 +342,25 @@ static int msm_ssphy_qmp_init(struct usb_phy *uphy)
 	if (ret) {
 		dev_err(uphy->dev, "Failed the main PHY configuration\n");
 		return ret;
+	}
+
+	temp = readl_relaxed(phy->base + USB3_QSERDES_TX_EMP_POST1_LVL);
+	printk("[USB] USB3_QSERDES_TX_EMP_POST1_LVL = %x\n", temp);
+	temp = readl_relaxed(phy->base + USB3_QSERDES_TX_DRV_LVL);
+	printk("[USB] USB3_QSERDES_TX_DRV_LVL = %x\n", temp);
+
+	if (tx_drv) {
+		writel_relaxed(tx_drv,
+				phy->base + USB3_QSERDES_TX_DRV_LVL);
+		temp = readl_relaxed(phy->base + USB3_QSERDES_TX_DRV_LVL);
+		printk("[USB] USB3_QSERDES_TX_DRV_LVL = %x\n", temp);
+	}
+
+	if (tx_emp) {
+		writel_relaxed(tx_emp,
+				phy->base + USB3_QSERDES_TX_EMP_POST1_LVL);
+		temp = readl_relaxed(phy->base + USB3_QSERDES_TX_EMP_POST1_LVL);
+		printk("[USB] USB3_QSERDES_TX_EMP_POST1_LVL = %x\n", temp);
 	}
 
 	/* perform lane selection */
