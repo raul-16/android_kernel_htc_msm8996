@@ -296,9 +296,6 @@ struct dwc3_msm {
 	enum dwc3_pd_power_role power_role;
 	enum dwc3_pd_data_role data_role;
 #endif
-#if defined(CONFIG_MACH_DUMMY)
-	struct delayed_work		otg_tps_work;
-#endif
 	bool xo_vote_for_charger;
 
 	u32                     pm_qos_latency;
@@ -327,9 +324,6 @@ static struct dwc3_msm *context = NULL; /* 2015/10/12, USB Team, PCN00021 */
 static int htc_id_backup;
 static int htc_vbus_backup;
 /*-- 2015/10/13, USB Team, PCN00022 --*/
-#if defined(CONFIG_MACH_DUMMY)
-static void dwc3_otg_tps_work(struct work_struct *w);
-#endif
 
 #define PM_QOS_SAMPLE_SEC		2
 #define PM_QOS_THRESHOLD_NOM		400
@@ -3250,9 +3244,6 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 #if defined(CONFIG_ANALOGIX_OHIO) || defined(CONFIG_ANALOGIX_7688)
 	INIT_DELAYED_WORK(&mdwc->vbus_notify_work, dwc3_notify_vbus_work);
 #endif
-#if defined(CONFIG_MACH_DUMMY)
-	INIT_DELAYED_WORK(&mdwc->otg_tps_work, dwc3_otg_tps_work);
-#endif
 	INIT_DELAYED_WORK(&mdwc->sm_work, dwc3_msm_otg_sm_work);
 	INIT_DELAYED_WORK(&mdwc->perf_vote_work, dwc3_msm_otg_perf_vote_work);
 
@@ -3731,89 +3722,6 @@ static int dwc3_msm_remove(struct platform_device *pdev)
 
 #define VBUS_REG_CHECK_DELAY	(msecs_to_jiffies(1000))
 
-#if defined(CONFIG_MACH_DUMMY)
-#define tps_max_retry	10
-bool tps_switch = 0;	/* 0: switch to default; 1: switch to TPS*/
-bool tps_status = 0;
-static void dwc3_otg_tps_work(struct work_struct *w)
-{
-	struct dwc3_msm *mdwc = context;
-	union power_supply_propval batt_propval;
-	int otg_status, i;
-	int ret;
-
-	if (!mdwc)
-		return;
-
-	pr_info("%s: tps work\n", __func__);
-
-	if (!mdwc->batt_psy) {
-		for (i = 0; i < tps_max_retry; i++) {
-			mdwc->batt_psy = power_supply_get_by_name("battery");
-			if (mdwc->batt_psy)
-				break;
-			msleep(500);
-		}
-		if (!mdwc->batt_psy) {
-			pr_err("%s: Unable to get battery psy\n", __func__);
-			return;
-		}
-	}
-
-	if (!mdwc->vbus_reg) {
-		mdwc->vbus_reg = devm_regulator_get_optional(mdwc->dev,
-					"vbus_dwc3");
-		if (IS_ERR(mdwc->vbus_reg)) {
-			mdwc->vbus_reg = NULL;
-			pr_err("%s: regulator not ready, rc = %ld\n",
-				__func__, PTR_ERR(mdwc->vbus_reg));
-		}
-	}
-
-	mdwc->batt_psy->get_property(
-		mdwc->batt_psy, POWER_SUPPLY_PROP_TPS_OTG_ENABLE, &batt_propval);
-	otg_status = batt_propval.intval;
-	pr_info("%s: current OTG status = %d\n", __func__, otg_status);
-
-	if (tps_switch) {
-		if (!tps_status) {
-			batt_propval.intval = 1;
-			mdwc->batt_psy->set_property(
-				mdwc->batt_psy, POWER_SUPPLY_PROP_TPS_OTG_ENABLE, &batt_propval);
-			tps_status = 1;
-			pr_info("%s: tps on\n", __func__);
-			if (mdwc->vbus_reg && regulator_is_enabled(mdwc->vbus_reg)) {
-				ret = regulator_disable(mdwc->vbus_reg);
-				if (ret)
-					pr_err("%s: unable to disable vbus_reg\n", __func__);
-			}
-		}
-	}
-	else {
-		batt_propval.intval = 0;
-		mdwc->batt_psy->set_property(
-			mdwc->batt_psy, POWER_SUPPLY_PROP_TPS_OTG_ENABLE, &batt_propval);
-		tps_status = 0;
-		pr_info("%s: tps off\n", __func__);
-	}
-
-	return;
-}
-
-void dwc3_otg_switch_power_source(bool on)
-{
-	struct dwc3_msm *mdwc = context;
-
-	if (!mdwc || (tps_status && on))
-		return;
-
-	tps_switch = on;
-	schedule_delayed_work(&mdwc->otg_tps_work, msecs_to_jiffies(100));
-	return;
-}
-EXPORT_SYMBOL_GPL(dwc3_otg_switch_power_source);
-#endif
-
 #if defined(CONFIG_ANALOGIX_OHIO) || defined(CONFIG_ANALOGIX_7688)
 int dwc3_pd_vbus_ctrl(int on)
 {
@@ -3895,12 +3803,6 @@ int dwc3_pd_vbus_ctrl(int on)
 	else { // on == 0   or   on == -1
 		dev_dbg(dwc->dev, "%s: turn off regulator\n", __func__);
 
-#if defined(CONFIG_MACH_DUMMY)
-		if (tps_status) {
-			tps_switch = 0;
-			schedule_delayed_work(&mdwc->otg_tps_work, 0);
-		}
-#endif
 		if (!IS_ERR(mdwc->vbus_reg) && regulator_is_enabled(mdwc->vbus_reg)) {
 			ret = regulator_disable(mdwc->vbus_reg);
 			if (ret) {

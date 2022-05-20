@@ -516,13 +516,6 @@ static int anx7688_cc_change(u8 cc_status)
 			break;
 	}
 
-#ifdef CONFIG_MACH_DUMMY
-	if (notify_batt && data->batt_psy && data->batt_psy->set_property) {
-		ret = data->batt_psy->set_property(
-			data->batt_psy, POWER_SUPPLY_PROP_TYPEC_SINK_CURRENT,
-			&batt_prop);
-	}
-#endif
 	return ret;
 }
 
@@ -856,13 +849,6 @@ static irqreturn_t anx7688_cbl_det_isr(int irq, void *data)
 			anx7688_platform_vconn_ctl(0);
 		platform->curr_cc = 0x00;
 		batt_prop.intval = utccNone;
-#ifdef CONFIG_MACH_DUMMY
-		if (platform->batt_psy && platform->batt_psy->set_property) {
-			platform->batt_psy->set_property(
-			platform->batt_psy, POWER_SUPPLY_PROP_TYPEC_SINK_CURRENT,
-				&batt_prop);
-		}
-#endif
 
 #ifdef SUP_VBUS_CTL
 		gpio_set_value(platform->pdata->gpio_vbus_ctrl, 0);

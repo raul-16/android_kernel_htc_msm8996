@@ -79,10 +79,6 @@ tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec); \
 #define POWER_MONITOR_BATT_TEMP	330
 #endif //CONFIG_HTC_BATT_PCN0006
 
-#ifdef CONFIG_MACH_DUMMY
-#define DISPLAY_FLICKER_WA_ENABLE_LEVEL 75
-#endif
-
 #ifdef CONFIG_HTC_BATT_PCN0002
 /* stored consistent parameters */
 #define STORE_MAGIC_NUM          0xDDAACC00
@@ -143,9 +139,6 @@ struct battery_info_reply {
 	u32 overload;
 	u32 over_vchg;
 	u32 health;
-#ifdef CONFIG_MACH_DUMMY
-	u32 tps_otg_enable;
-#endif
 	bool is_full;
 #ifdef CONFIG_HTC_BATT_PCN0016
 	bool is_htcchg_ext_mode;
@@ -222,9 +215,6 @@ struct htc_battery_info {
 	struct notifier_block fb_notif;
 	struct workqueue_struct *batt_fb_wq;
 	struct delayed_work work_fb;
-#ifdef CONFIG_MACH_DUMMY
-	struct timespec last_scr_off_time;
-#endif
 #endif
 	unsigned int htc_extension;	/* for htc in-house sw */
 };
@@ -357,11 +347,6 @@ bool htc_battery_get_pd_type(int *curr);
 #endif //CONFIG_HTC_BATT_PCN0020
 bool htc_battery_get_discharging_reason(void);
 int htc_get_surface_temp(void);
-#ifdef CONFIG_MACH_DUMMY
-bool htc_battery_is_pd_detected(void);
-int htc_battery_get_pd_current(void);
-int htc_battery_get_pd_vbus(int *vbus);
-#endif
 
 /* Implement on QCT driver */
 #ifdef CONFIG_HTC_BATT_PCN0018
