@@ -37,6 +37,12 @@
 #include <linux/string_helpers.h>
 #include <linux/alarmtimer.h>
 #include <linux/qpnp/qpnp-revid.h>
+#ifdef CONFIG_HTC_BATT
+#include <linux/power/htc_battery.h>
+#include <linux/htc_flags.h>
+/* Sync from commit http://git.htc.com:8081/#/c/452196/ */
+#include <linux/async.h>
+#endif
 
 /* Register offsets */
 
@@ -250,7 +256,7 @@ static struct fg_mem_setting settings[FG_MEM_SETTING_MAX] = {
 	SETTING(CHG_TERM_CURRENT, 0x4F8,   2,      250),
 	SETTING(IRQ_VOLT_EMPTY,	 0x458,   3,      3100),
 	SETTING(CUTOFF_VOLTAGE,	 0x40C,   0,      3200),
-	SETTING(VBAT_EST_DIFF,	 0x000,   0,      30),
+	SETTING(VBAT_EST_DIFF,	 0x000,   0,      150),
 	SETTING(DELTA_SOC,	 0x450,   3,      1),
 	SETTING(BATT_LOW,	 0x458,   0,      4200),
 	SETTING(THERM_DELAY,	 0x4AC,   3,      0),
@@ -317,7 +323,15 @@ module_param_named(
 	debug_mask, fg_debug_mask, int, 00600
 );
 
+#ifdef CONFIG_ARCH_MSM8996
+static int fg_reset_on_lockup = 1;
+#else
 static int fg_reset_on_lockup;
+#endif
+
+#ifdef CONFIG_HTC_BATT
+int g_empty_soc_irq_count = 0;
+#endif
 
 static int fg_sense_type = -EINVAL;
 static int fg_restart;
@@ -336,6 +350,10 @@ static int fg_sram_update_period_ms = 30000;
 module_param_named(
 	sram_update_period_ms, fg_sram_update_period_ms, int, 00600
 );
+
+#ifdef CONFIG_HTC_BATT_PCN0002
+static bool g_is_ima_error_handling = false;
+#endif //CONFIG_HTC_BATT_PCN0002
 
 static bool fg_batt_valid_ocv;
 module_param_named(batt_valid_ocv, fg_batt_valid_ocv, bool, 0600
@@ -621,6 +639,9 @@ struct fg_chip {
 	struct mutex		ima_recovery_lock;
 	bool			ima_error_handling;
 	bool			block_sram_access;
+#ifdef CONFIG_HTC_BATT_WA_PCN0019
+	bool			skip_check_iacs_ready;
+#endif //CONFIG_HTC_BATT_WA_PCN0019
 	bool			irqs_enabled;
 	bool			use_last_soc;
 	int			last_soc;
@@ -638,6 +659,10 @@ struct fg_chip {
 	struct delayed_work	check_sanity_work;
 	struct fg_wakeup_source	sanity_wakeup_source;
 	u8			last_beat_count;
+#ifdef CONFIG_HTC_BATT
+	struct delayed_work	clear_empty_soc_irq_counter;
+	struct delayed_work	rearm_empty_soc_irq_work;
+#endif
 	/* Batt_info restore */
 	int			batt_info[BATT_INFO_MAX];
 	int			batt_info_id;
@@ -658,6 +683,10 @@ static const mode_t DFS_MODE		= 00600;
 static const char *default_batt_type	= "Unknown Battery";
 static const char *loading_batt_type	= "Loading Battery Data";
 static const char *missing_batt_type	= "Disconnected Battery";
+
+#ifdef CONFIG_HTC_BATT_WA_PCN0016
+static struct fg_chip *the_chip;
+#endif //CONFIG_HTC_BATT_WA_PCN0016
 
 /* Log buffer */
 struct fg_log_buffer {
@@ -1234,8 +1263,7 @@ static int fg_run_iacs_clear_sequence(struct fg_chip *chip)
 	int rc = 0;
 	u8 temp;
 
-	if (fg_debug_mask & FG_STATUS)
-		pr_info("Running IACS clear sequence\n");
+	pr_info("Running IACS clear sequence\n");
 
 	/* clear the error */
 	rc = fg_masked_write(chip, chip->mem_base + MEM_INTF_IMA_CFG,
@@ -1272,8 +1300,7 @@ static int fg_run_iacs_clear_sequence(struct fg_chip *chip)
 		return rc;
 	}
 
-	if (fg_debug_mask & FG_STATUS)
-		pr_info("IACS clear sequence complete!\n");
+	pr_info("IACS clear sequence complete!\n");
 	return rc;
 }
 
@@ -1402,14 +1429,18 @@ static void fg_enable_irqs(struct fg_chip *chip, bool enable)
 static void fg_check_ima_error_handling(struct fg_chip *chip)
 {
 	if (chip->ima_error_handling) {
-		if (fg_debug_mask & FG_STATUS)
-			pr_info("IMA error is handled already!\n");
+		pr_info("IMA error is handled already!\n");
 		return;
 	}
+
+	pr_info("Attempting to Start recovery.\n");
 	mutex_lock(&chip->ima_recovery_lock);
 	fg_enable_irqs(chip, false);
 	chip->use_last_cc_soc = true;
 	chip->ima_error_handling = true;
+#ifdef CONFIG_HTC_BATT_PCN0002
+	g_is_ima_error_handling = true;
+#endif //CONFIG_HTC_BATT_PCN0002
 	if (!work_pending(&chip->ima_error_recovery_work))
 		schedule_work(&chip->ima_error_recovery_work);
 	mutex_unlock(&chip->ima_recovery_lock);
@@ -1471,6 +1502,9 @@ static int fg_check_alg_status(struct fg_chip *chip)
 	if (count == ALG_ST_CHECK_COUNT) {
 		/* If we are here, that means FG ALG is stuck */
 		pr_err("ALG is stuck\n");
+#ifdef CONFIG_HTC_BATT_WA_PCN0019
+		chip->skip_check_iacs_ready = true;
+#endif //CONFIG_HTC_BATT_WA_PCN0019
 		fg_check_ima_error_handling(chip);
 		rc = -EBUSY;
 	}
@@ -1481,6 +1515,13 @@ static int fg_check_iacs_ready(struct fg_chip *chip)
 {
 	int rc = 0, timeout = 250;
 	u8 ima_opr_sts = 0;
+
+#ifdef CONFIG_HTC_BATT_WA_PCN0019
+	if(chip->skip_check_iacs_ready == true) {
+		pr_err("skip_check_iacs_ready\n");
+		return -EBUSY;
+	}
+#endif //CONFIG_HTC_BATT_WA_PCN0019
 
 	/*
 	 * Additional delay to make sure IACS ready bit is set after
@@ -1999,15 +2040,19 @@ static int fg_backup_sram_registers(struct fg_chip *chip, bool save)
 
 #define SOC_FG_RESET	0xF3
 #define RESET_MASK	(BIT(7) | BIT(5))
+#define SOC_LOW_PWR_CFG 0xF5
 static int fg_reset(struct fg_chip *chip, bool reset)
 {
 	int rc;
+	u8 soc_low_pwr_cfg;
 
 	rc = fg_sec_masked_write(chip, chip->soc_base + SOC_FG_RESET,
 		0xFF, reset ? RESET_MASK : 0, 1);
 	if (rc)
 		pr_err("Error in writing to 0x%x, rc=%d\n", SOC_FG_RESET, rc);
 
+	rc = fg_read(chip, &soc_low_pwr_cfg, chip->soc_base + SOC_LOW_PWR_CFG, 1);
+	pr_info("soc_low_pwr_cfg: 0x%02X\n", soc_low_pwr_cfg);
 	return rc;
 }
 
@@ -2231,6 +2276,37 @@ static int get_monotonic_soc_raw(struct fg_chip *chip)
 		pr_info_ratelimited("raw: 0x%02x\n", cap[0]);
 	return cap[0];
 }
+
+#ifdef CONFIG_HTC_BATT
+#define SYSTEM_SOC_ADDR                0x574
+#define SYSTEM_SOC_OFFSET      0
+#define SYSTEM_SOC_SIZE                2
+static int get_system_soc(struct fg_chip *chip)
+{
+	u8 cap[2];
+	int soc;
+	int rc;
+
+	rc = fg_mem_read(chip, cap, SYSTEM_SOC_ADDR, SYSTEM_SOC_SIZE, SYSTEM_SOC_OFFSET, 0);
+	if (rc) {
+		pr_err("fg_mem read failed: addr=%03x, rc=%d\n",
+			SYSTEM_SOC_ADDR, rc);
+		return rc;
+	}
+	soc = ((cap[1] << 8) + cap[0]) * 10000 / 0xffff;
+
+	if (fg_debug_mask & FG_POWER_SUPPLY)
+		pr_info_ratelimited("raw: 0x%02x\n", soc);
+	return soc;
+}
+#endif
+
+#ifdef CONFIG_HTC_BATT_PCN0002
+bool get_ima_error_status(void)
+{
+	return g_is_ima_error_handling;
+}
+#endif //CONFIG_HTC_BATT_PCN0002
 
 #define EMPTY_CAPACITY		0
 #define DEFAULT_CAPACITY	50
@@ -2652,6 +2728,48 @@ out:
 	return rc;
 }
 
+/*
+ * The FG_ALG_SYSCTL_1 word contains control bits for the
+ * fuel-gauge algorithm, most of whose effect are not
+ * publicly disclosed. The low nibble of 0x4B3 contains
+ * bits to control whether an IRQ is raised on low-battery
+ * conditions, as well as a debug bit (bit 3) that forces
+ * a delta-soc interrupt on every fuel-gauge cycle.
+ * The value in FG_ALG_SYSCTL_1_DFLT is the recommended
+ * default configuration with the IRQ's enabled.
+ */
+#define FG_ALG_SYSCTL_1      0x4B0
+#define FG_ALG_SYSCTL_1_DFLT 0x870C7999
+static int fg_check_system_config(struct fg_chip *chip)
+{
+	int rc;
+	u32 buf;
+
+	if (!chip->ima_supported)
+		return 0;
+
+	rc = fg_mem_read(chip, (u8 *)&buf, FG_ALG_SYSCTL_1, 4, 0, 0);
+	if (rc) {
+		pr_err("Failed to read 0x4B0-3 rc=%d\n", rc);
+		return rc;
+	}
+
+	if (fg_debug_mask & FG_STATUS)
+		pr_info("FG_ALG_SYSCTL_1: %x\n", buf);
+
+	if (buf != FG_ALG_SYSCTL_1_DFLT) {
+		pr_err("FG_ALG_SYSCTL_1 corrupted? buf: %x\n", buf);
+		buf = FG_ALG_SYSCTL_1_DFLT;
+		rc = fg_mem_write(chip, (u8 *)&buf, FG_ALG_SYSCTL_1, 4, 0, 0);
+		if (rc) {
+			pr_err("Failed to write 0x4B0-3 rc=%d\n", rc);
+			return rc;
+		}
+	}
+
+	return rc;
+}
+
 #define SANITY_CHECK_PERIOD_MS	5000
 static void check_sanity_work(struct work_struct *work)
 {
@@ -2661,6 +2779,10 @@ static void check_sanity_work(struct work_struct *work)
 	int rc = 0;
 	u8 beat_count;
 	bool tried_once = false;
+
+	rc = fg_check_system_config(chip);
+	if (rc)
+		pr_err("Failed to check system config rc=%d\n", rc);
 
 	fg_stay_awake(&chip->sanity_wakeup_source);
 
@@ -4639,6 +4761,11 @@ static int fg_power_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_CHARGE_NOW_RAW:
 		val->intval = get_sram_prop_now(chip, FG_DATA_CC_CHARGE);
 		break;
+#ifdef CONFIG_HTC_BATT
+	case POWER_SUPPLY_PROP_SYSTEM_SOC:
+		val->intval = get_system_soc(chip);
+		break;
+#endif //CONFIG_HTC_BATT
 	case POWER_SUPPLY_PROP_CHARGE_COUNTER:
 		val->intval = fg_get_current_cc(chip);
 		break;
@@ -4821,6 +4948,36 @@ static int fg_property_is_writeable(struct power_supply *psy,
 	return 0;
 }
 
+#ifdef CONFIG_HTC_BATT_WA_PCN0016
+#define DUMP_FG_REG_START	0x4000
+#define DUMP_FG_REG_SIZE		0x500
+void dump_fg_reg(void)
+{
+	u8	reg;
+	int	reg_offset;
+
+	for (reg_offset = 0;reg_offset < DUMP_FG_REG_SIZE; reg_offset++){
+		fg_read(the_chip, &reg, DUMP_FG_REG_START + reg_offset, 1);
+		pr_info("0x%04x: 0x%02X\n", (DUMP_FG_REG_START + reg_offset), reg);
+	}
+}
+
+void force_dump_fg_sram(void)
+{
+	schedule_work(&the_chip->dump_sram);
+}
+
+void force_reset_fg(void) {
+	pr_err("HTC triggering FG reset\n");
+	fg_check_ima_error_handling(the_chip);
+}
+
+#endif //CONFIG_HTC_BATT_WA_PCN0016
+
+#ifdef CONFIG_HTC_BATT_WA_PCN0016
+#define SRAM_DUMP_START_0x0		0x0
+#define SRAM_DUMP_START_0x200	0x200
+#endif //CONFIG_HTC_BATT_WA_PCN0016
 #define SRAM_DUMP_START		0x400
 #define SRAM_DUMP_LEN		0x200
 static void dump_sram(struct work_struct *work)
@@ -4856,6 +5013,36 @@ static void dump_sram(struct work_struct *work)
 				INT_RT_STS(chip->mem_base), rc);
 	else
 		pr_info("memif rt_sts: 0x%x\n", rt_sts);
+
+#ifdef CONFIG_HTC_BATT_WA_PCN0016
+	// dump FG regs
+	dump_fg_reg();
+
+	// dump FG SRAM
+	rc = fg_mem_read(chip, buffer, SRAM_DUMP_START_0x0, SRAM_DUMP_LEN, 0, 0);
+	if (rc) {
+		pr_err("dump failed: rc = %d\n", rc);
+		return;
+	}
+
+	for (i = 0; i < SRAM_DUMP_LEN; i += 4) {
+		str[0] = '\0';
+		fill_string(str, DEBUG_PRINT_BUFFER_SIZE, buffer + i, 4);
+		pr_info("%03X %s\n", SRAM_DUMP_START_0x0 + i, str);
+	}
+
+	rc = fg_mem_read(chip, buffer, SRAM_DUMP_START_0x200, SRAM_DUMP_LEN, 0, 0);
+	if (rc) {
+		pr_err("dump failed: rc = %d\n", rc);
+		return;
+	}
+
+	for (i = 0; i < SRAM_DUMP_LEN; i += 4) {
+		str[0] = '\0';
+		fill_string(str, DEBUG_PRINT_BUFFER_SIZE, buffer + i, 4);
+		pr_info("%03X %s\n", SRAM_DUMP_START_0x200 + i, str);
+	}
+#endif //CONFIG_HTC_BATT_WA_PCN0016
 
 	rc = fg_mem_read(chip, buffer, SRAM_DUMP_START, SRAM_DUMP_LEN, 0, 0);
 	if (rc) {
@@ -5344,6 +5531,12 @@ static irqreturn_t fg_soc_irq_handler(int irq, void *_chip)
 	if (fg_debug_mask & FG_IRQS)
 		pr_info("triggered 0x%x\n", soc_rt_sts);
 
+	rc = fg_check_system_config(chip);
+	// continue even if the check for corruption in the FG sram fails,
+	// the rest of the actions remain useful and may succeed.
+	if (rc)
+		pr_err("Failed to check system config rc=%d\n", rc);
+
 	if (chip->dischg_gain.enable) {
 		fg_stay_awake(&chip->dischg_gain_wakeup_source);
 		schedule_work(&chip->dischg_gain_work);
@@ -5409,6 +5602,63 @@ static irqreturn_t fg_soc_irq_handler(int irq, void *_chip)
 	return IRQ_HANDLED;
 }
 
+#ifdef CONFIG_HTC_BATT
+#define CLEAR_EMPTY_SOC_IRQ_COUNTER_MS  30000
+#define REARM_EMPTY_SOC_IRQ_MS          1000
+#define FG_ALG_SYSCTL_1                 0x4B0
+#define ALERT_CFG_OFFSET                3
+#define IRQ_USE_VOLTAGE_HYST_BIT        BIT(0)
+#define EMPTY_FROM_VOLTAGE_BIT          BIT(1)
+#define EMPTY_FROM_SOC_BIT              BIT(2)
+#define EMPTY_SOC_IRQ_MASK              (IRQ_USE_VOLTAGE_HYST_BIT | \
+                                         EMPTY_FROM_SOC_BIT | \
+                                         EMPTY_FROM_VOLTAGE_BIT)
+
+static void clear_empty_soc_irq_counter(struct work_struct *work)
+{
+	pr_info("clear empty_soc irq counter\n");
+	g_empty_soc_irq_count = 0;
+};
+
+static void rearm_empty_soc_irq_work(struct work_struct *work)
+{
+	int rc;
+	struct fg_chip *chip = container_of(work,
+				struct fg_chip,
+				rearm_empty_soc_irq_work.work);
+	/*
+	 * Clear bits 0-2 in 0x4B3 and set them again to make empty_soc irq
+	 * trigger again.
+	 */
+	rc = fg_mem_masked_write(chip, FG_ALG_SYSCTL_1, EMPTY_SOC_IRQ_MASK,
+			0, ALERT_CFG_OFFSET);
+	if (rc) {
+		pr_err("failed to write to 0x4B3 rc=%d\n", rc);
+		return;
+	}
+
+	/* Wait for a FG cycle before enabling empty soc irq configuration */
+	msleep(FG_CYCLE_MS);
+
+	rc = fg_mem_masked_write(chip, FG_ALG_SYSCTL_1, EMPTY_SOC_IRQ_MASK,
+			EMPTY_SOC_IRQ_MASK, ALERT_CFG_OFFSET);
+	if (rc) {
+		pr_err("failed to write to 0x4B3 rc=%d\n", rc);
+		return;
+	}
+};
+
+#define CRITICAL_SHUTDOWN_COUNT	3
+static void rearm_empty_soc_irq(struct fg_chip *chip)
+{
+	if (delayed_work_pending(&chip->rearm_empty_soc_irq_work))
+		cancel_delayed_work(&chip->rearm_empty_soc_irq_work);
+	if (g_empty_soc_irq_count < CRITICAL_SHUTDOWN_COUNT)
+		schedule_delayed_work(&chip->rearm_empty_soc_irq_work,
+				REARM_EMPTY_SOC_IRQ_MS);
+};
+#endif
+
 static irqreturn_t fg_empty_soc_irq_handler(int irq, void *_chip)
 {
 	struct fg_chip *chip = _chip;
@@ -5422,7 +5672,9 @@ static irqreturn_t fg_empty_soc_irq_handler(int irq, void *_chip)
 		goto done;
 	}
 
+#ifndef CONFIG_HTC_BATT
 	if (fg_debug_mask & FG_IRQS)
+#endif
 		pr_info("triggered 0x%x\n", soc_rt_sts);
 	if (fg_is_batt_empty(chip)) {
 		fg_stay_awake(&chip->empty_check_wakeup_source);
@@ -5431,6 +5683,27 @@ static irqreturn_t fg_empty_soc_irq_handler(int irq, void *_chip)
 	} else {
 		chip->soc_empty = false;
 	}
+
+#ifdef CONFIG_HTC_BATT
+	/* Clear critical shutdown count after 30secs */
+	if (!delayed_work_pending(&chip->clear_empty_soc_irq_counter))
+		schedule_delayed_work(&chip->clear_empty_soc_irq_counter,
+				CLEAR_EMPTY_SOC_IRQ_COUNTER_MS);
+
+	if (g_empty_soc_irq_count < CRITICAL_SHUTDOWN_COUNT
+			&& fg_is_batt_empty(chip))
+		g_empty_soc_irq_count++;
+
+	pr_info("triggered=0x%x, vbatt=%dmV, irq_count:%d, is_batt_empty=%d\n",
+		soc_rt_sts, get_sram_prop_now(chip, FG_DATA_VOLTAGE)/1000,
+		g_empty_soc_irq_count, fg_is_batt_empty(chip));
+
+	if (g_empty_soc_irq_count >= CRITICAL_SHUTDOWN_COUNT)
+		htc_battery_info_update(POWER_SUPPLY_PROP_CRITICAL_SHUTDOWN,
+			get_sram_prop_now(chip, FG_DATA_VOLTAGE) / 1000);
+	else
+		rearm_empty_soc_irq(chip);
+#endif
 
 done:
 	return IRQ_HANDLED;
@@ -6570,6 +6843,18 @@ done:
 	pr_info("Battery SOC: %d, V: %duV\n", get_prop_capacity(chip),
 		fg_data[FG_DATA_VOLTAGE].value);
 	complete_all(&chip->fg_reset_done);
+#ifdef CONFIG_HTC_BATT_PCN0006
+		/* Put here because battery capacity ready when profile loaded done.
+		here finish after fg_probe done. */
+		if (get_kernel_flag() & KERNEL_FLAG_ENABLE_BMS_CHARGER_LOG)
+			fg_debug_mask = 0xFF;
+		else
+			fg_debug_mask = 0x04;
+#endif //CONFIG_HTC_BATT_PCN0006
+#ifdef CONFIG_HTC_BATT_PCN0014
+		htc_battery_probe_process(GAUGE_PROBE_DONE);
+#endif //CONFIG_HTC_BATT_PCN0014
+
 	return rc;
 no_profile:
 	chip->soc_reporting_ready = true;
@@ -6584,6 +6869,11 @@ no_profile:
 	if (chip->power_supply_registered)
 		power_supply_changed(chip->bms_psy);
 	fg_relax(&chip->profile_wakeup_source);
+#ifdef CONFIG_HTC_BATT
+	/* Should inform batt_worker fg is ready here, too. */
+	/* Otherwise batt_worker will not work if batt ID is unknown. */
+	htc_battery_probe_process(GAUGE_PROBE_DONE);
+#endif /* CONFIG_HTC_BATT */
 	return rc;
 update:
 	cancel_delayed_work(&chip->update_sram_data);
@@ -6817,7 +7107,9 @@ static int update_irq_volt_empty(struct fg_chip *chip)
 
 	data = (u8)VOLT_UV_TO_VOLTCMP8(volt_mv * 1000);
 
+#ifndef CONFIG_HTC_BATT
 	if (fg_debug_mask & FG_STATUS)
+#endif
 		pr_info("voltage = %d, converted_raw = %04x\n", volt_mv, data);
 	return fg_mem_write(chip, &data,
 			settings[FG_MEM_IRQ_VOLT_EMPTY].address, 1,
@@ -7260,9 +7552,10 @@ static int fg_init_irqs(struct fg_chip *chip)
 				return rc;
 			}
 
-			rc = devm_request_irq(chip->dev,
-				chip->soc_irq[FULL_SOC].irq,
-				fg_soc_irq_handler, IRQF_TRIGGER_RISING,
+			rc = devm_request_threaded_irq(chip->dev,
+				chip->soc_irq[FULL_SOC].irq, NULL,
+				fg_soc_irq_handler,
+				IRQF_TRIGGER_RISING | IRQF_ONESHOT,
 				"full-soc", chip);
 			if (rc < 0) {
 				pr_err("Can't request %d full-soc: %d\n",
@@ -7286,9 +7579,10 @@ static int fg_init_irqs(struct fg_chip *chip)
 					return rc;
 				}
 			}
-			rc = devm_request_irq(chip->dev,
-				chip->soc_irq[DELTA_SOC].irq,
-				fg_soc_irq_handler, IRQF_TRIGGER_RISING,
+			rc = devm_request_threaded_irq(chip->dev,
+				chip->soc_irq[DELTA_SOC].irq, NULL,
+				fg_soc_irq_handler,
+				IRQF_TRIGGER_RISING | IRQF_ONESHOT,
 				"delta-soc", chip);
 			if (rc < 0) {
 				pr_err("Can't request %d delta-soc: %d\n",
@@ -7975,7 +8269,6 @@ static int bcl_trim_workaround(struct fg_chip *chip)
 	return 0;
 }
 
-#define FG_ALG_SYSCTL_1			0x4B0
 #define SOC_CNFG			0x450
 #define SOC_DELTA_OFFSET		3
 #define DELTA_SOC_PERCENT		1
@@ -8122,6 +8415,12 @@ static int fg_common_hw_init(struct fg_chip *chip)
 	if (fg_debug_mask & FG_STATUS)
 		pr_info("rslow_comp active is %sabled\n",
 			chip->rslow_comp.active ? "en" : "dis");
+
+	rc = fg_check_system_config(chip);
+	if (rc) {
+		pr_err("Failed to check system config rc=%d\n", rc);
+		return rc;
+	}
 
 	/*
 	 * Clear bits 0-2 in 0x4B3 and set them again to make empty_soc irq
@@ -8367,6 +8666,7 @@ static void ima_error_recovery_work(struct work_struct *work)
 		return;
 	}
 
+	pr_info("ima_error_recovery_work start\n");
 	/*
 	 * SOC should be read and used until the error recovery completes.
 	 * Without this, there could be a fluctuation in SOC values notified
@@ -8378,10 +8678,14 @@ static void ima_error_recovery_work(struct work_struct *work)
 	chip->block_sram_access = true;
 
 	/* Release the mutex to avoid deadlock while cancelling the works */
+	pr_info("Cancelling all works, unlocking mutex\n");
 	mutex_unlock(&chip->ima_recovery_lock);
 
 	/* Cancel all the works */
 	fg_cancel_all_works(chip);
+	pr_info("Cancelling all works finished\n");
+
+	pr_info("last_soc: %d\n", chip->last_soc);
 
 	if (fg_debug_mask & FG_STATUS)
 		pr_info("last_soc: %d\n", chip->last_soc);
@@ -8404,8 +8708,10 @@ static void ima_error_recovery_work(struct work_struct *work)
 		goto out;
 	}
 
-	if (fg_debug_mask & FG_STATUS)
-		pr_info("resetting FG\n");
+	pr_info("resetting FG\n");
+#ifdef CONFIG_HTC_BATT_WA_PCN0019
+	chip->skip_check_iacs_ready = false;
+#endif //CONFIG_HTC_BATT_WA_PCN0019
 
 	/* Assert FG reset */
 	rc = fg_reset(chip, true);
@@ -8417,8 +8723,7 @@ static void ima_error_recovery_work(struct work_struct *work)
 	/* Wait for a small time before deasserting FG reset */
 	msleep(100);
 
-	if (fg_debug_mask & FG_STATUS)
-		pr_info("clearing FG from reset\n");
+	pr_info("clearing FG from reset\n");
 
 	/* Deassert FG reset */
 	rc = fg_reset(chip, false);
@@ -8437,8 +8742,7 @@ static void ima_error_recovery_work(struct work_struct *work)
 		goto wait;
 	}
 
-	if (fg_debug_mask & FG_STATUS)
-		pr_info("Calling hw_init\n");
+	pr_info("Calling hw_init\n");
 
 	/*
 	 * Once FG is reset, everything in SRAM will be wiped out. Redo
@@ -8451,6 +8755,7 @@ static void ima_error_recovery_work(struct work_struct *work)
 		goto out;
 	}
 
+	pr_info("Calling update_jeita_setting\n");
 	update_jeita_setting(&chip->update_jeita_setting.work);
 
 	if (chip->wa_flag & IADC_GAIN_COMP_WA) {
@@ -8459,8 +8764,7 @@ static void ima_error_recovery_work(struct work_struct *work)
 			goto out;
 	}
 
-	if (fg_debug_mask & FG_STATUS)
-		pr_info("loading battery profile\n");
+	pr_info("loading battery profile\n");
 	if (!chip->use_otp_profile) {
 		chip->battery_missing = true;
 		chip->profile_loaded = false;
@@ -8470,6 +8774,7 @@ static void ima_error_recovery_work(struct work_struct *work)
 	}
 
 wait:
+	pr_info("wait_for_completion_interruptible_timeout\n");
 	rc = wait_for_completion_interruptible_timeout(&chip->fg_reset_done,
 			msecs_to_jiffies(FG_RESTART_TIMEOUT_MS));
 
@@ -8500,8 +8805,12 @@ out:
 	schedule_delayed_work(&chip->check_sanity_work,
 		msecs_to_jiffies(1000));
 	chip->ima_error_handling = false;
+#ifdef CONFIG_HTC_BATT_PCN0002
+	g_is_ima_error_handling = false;
+#endif //CONFIG_HTC_BATT_PCN0002
 	mutex_unlock(&chip->ima_recovery_lock);
 	fg_relax(&chip->fg_reset_wakeup_source);
+	pr_info("ima_error_recovery_work end\n");
 }
 
 #define DIG_MINOR		0x0
@@ -8734,6 +9043,10 @@ static int fg_probe(struct platform_device *pdev)
 	mutex_init(&chip->rslow_comp.lock);
 	mutex_init(&chip->sysfs_restart_lock);
 	mutex_init(&chip->ima_recovery_lock);
+#ifdef CONFIG_HTC_BATT
+	INIT_DELAYED_WORK(&chip->clear_empty_soc_irq_counter, clear_empty_soc_irq_counter);
+	INIT_DELAYED_WORK(&chip->rearm_empty_soc_irq_work, rearm_empty_soc_irq_work);
+#endif
 	INIT_DELAYED_WORK(&chip->update_jeita_setting, update_jeita_setting);
 	INIT_DELAYED_WORK(&chip->update_sram_data, update_sram_data_work);
 	INIT_DELAYED_WORK(&chip->update_temp_work, update_temp_data);
@@ -8914,6 +9227,10 @@ static int fg_probe(struct platform_device *pdev)
 		chip->revision[DIG_MAJOR], chip->revision[DIG_MINOR],
 		chip->revision[ANA_MAJOR], chip->revision[ANA_MINOR],
 		chip->pmic_subtype);
+
+#ifdef CONFIG_HTC_BATT_WA_PCN0016
+	the_chip = chip;
+#endif //CONFIG_HTC_BATT_WA_PCN0016
 
 	return rc;
 
@@ -9180,10 +9497,23 @@ static struct platform_driver fg_driver = {
 	.shutdown	= fg_shutdown,
 };
 
+#ifdef CONFIG_HTC_BATT
+/* Sync from commit http://git.htc.com:8081/#/c/452196/ */
+static void __init fg_init_async(void *unused, async_cookie_t cookie)
+{
+	platform_driver_register(&fg_driver);
+}
+static int __init fg_init(void)
+{
+	async_schedule(fg_init_async, NULL);
+	return 0;
+}
+#else
 static int __init fg_init(void)
 {
 	return platform_driver_register(&fg_driver);
 }
+#endif
 
 static void __exit fg_exit(void)
 {
