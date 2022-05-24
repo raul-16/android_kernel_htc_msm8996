@@ -1,6 +1,6 @@
 config SDEXFAT_FS
-	tristate
-	default y
+	tristate "EXFAT filesystem support"
+	default n
 	select NLS
 	select NLS_UTF8
 	help
@@ -9,7 +9,7 @@ config SDEXFAT_FS
 
 config EXFAT_VIRTUAL_XATTR
 	bool "Virtual xattr support for exFAT filesystem"
-	default y
+	default n
 	depends on SDEXFAT_FS
 	help
 	  Modification of exFAT filesystem for virtual xattr
