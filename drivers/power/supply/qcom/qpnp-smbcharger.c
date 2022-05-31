@@ -3375,17 +3375,6 @@ static int set_usb_current_limit_vote_cb(struct votable *votable,
 		}
 	}
 
-#ifdef CONFIG_HTC_BATT_WA_PCN0013
-		/* clear hvdcp_icl_voter and restore HVDCP detection if charger type is AC */
-		if (effective_client && strcmp(effective_client, HVDCP_ICL_VOTER) == 0){
-			if (chip->usb_supply_type == POWER_SUPPLY_TYPE_USB_DCP){
-				pr_smb(PR_STATUS, "AC type but HVDCP limit ICL set, re-detect HVDCP\n");
-				schedule_work(&chip->hvdcp_redet_work);
-				return 0;
-			}
-		}
-#endif //CONFIG_HTC_BATT_WA_PCN0013
-
 	/* skip the aicl rerun if hvdcp icl voter is active */
 	if (strcmp(effective_id, HVDCP_ICL_VOTER) == 0)
 		return 0;
