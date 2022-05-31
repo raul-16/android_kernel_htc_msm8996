@@ -2694,17 +2694,6 @@ static int ohio_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-
-static int ohio_i2c_suspend(struct i2c_client *client, pm_message_t state)
-{
-	return 0;
-}
-
-static int ohio_i2c_resume(struct i2c_client *client)
-{
-	return 0;
-}
-
 static const struct i2c_device_id ohio_id[] = {
 	{"ohio", 0x50},
 	{}
@@ -2729,8 +2718,6 @@ static struct i2c_driver ohio_driver = {
 		   },
 	.probe = ohio_i2c_probe,
 	.remove = ohio_i2c_remove,
-	.suspend = ohio_i2c_suspend,
-	.resume = ohio_i2c_resume,
 	.id_table = ohio_id,
 };
 
