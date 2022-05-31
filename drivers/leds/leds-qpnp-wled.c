@@ -554,8 +554,9 @@ static int qpnp_wled_set_level(struct qpnp_wled *wled, int level)
 
 	if (wled->hyb_thres_low_wm) {
 		/* PMIC Noise workaround */
-		rc = qpnp_wled_read_reg(wled, &reg0,
-				QPNP_WLED_HYB_THRES_REG(wled->sink_base));
+		rc = qpnp_wled_read_reg(wled,
+				QPNP_WLED_HYB_THRES_REG(wled->sink_base),
+				&reg0);
 		if (rc < 0) {
 			pr_err("%s: read HYB_THRES_REG failed, rc=%d\n", __func__, rc);
 		} else {
@@ -566,8 +567,9 @@ static int qpnp_wled_set_level(struct qpnp_wled *wled, int level)
 				reg |= fls(wled->hyb_thres_low / QPNP_WLED_HYB_THRES_MIN) - 1;
 
 			pr_debug("%s: reg=[%u, %u], level=%d\n", __func__, reg0, reg, level);
-			rc = qpnp_wled_write_reg(wled, &reg,
-					QPNP_WLED_HYB_THRES_REG(wled->sink_base));
+			rc = qpnp_wled_write_reg(wled,
+					QPNP_WLED_HYB_THRES_REG(wled->sink_base),
+					reg);
 			if (rc)
 				pr_err("%s: update HYB_THRES_REG failed: value=%u\n", __func__, reg);
 		}
@@ -701,36 +703,32 @@ static int qpnp_wled_flash_en_locked(struct qpnp_wled *wled, int en, int duratio
 
 	/* enable all strings, max backlight level, full scale current */
 	for (i = 0; i < wled->num_strings; i++) {
-#if 0
-		reg = (cabc << QPNP_WLED_CABC_SHIFT);
-		rc = qpnp_wled_write_reg(wled, &reg,
-				QPNP_WLED_CABC_REG(wled->sink_base, i));
-		if (rc)
-			goto exit;
-#endif
 		reg = (fs / QPNP_WLED_FS_CURR_STEP_UA) & 0x0f;
-		rc = qpnp_wled_write_reg(wled, &reg,
-				QPNP_WLED_FS_CURR_REG(wled->sink_base, i));
+		rc = qpnp_wled_write_reg(wled,
+				QPNP_WLED_FS_CURR_REG(wled->sink_base, i),
+				reg);
 		if (rc)
 			goto exit;
 
 		reg = level & QPNP_WLED_BRIGHT_LSB_MASK;
-		rc = qpnp_wled_write_reg(wled, &reg,
-			QPNP_WLED_BRIGHT_LSB_REG(wled->sink_base, i));
+		rc = qpnp_wled_write_reg(wled,
+			QPNP_WLED_BRIGHT_LSB_REG(wled->sink_base, i),
+			reg);
 		if (rc < 0)
 			goto exit;
 
 		reg = level >> QPNP_WLED_BRIGHT_MSB_SHIFT;
 		reg = reg & QPNP_WLED_BRIGHT_MSB_MASK;
-		rc = qpnp_wled_write_reg(wled, &reg,
-			QPNP_WLED_BRIGHT_MSB_REG(wled->sink_base, i));
+		rc = qpnp_wled_write_reg(wled,
+			QPNP_WLED_BRIGHT_MSB_REG(wled->sink_base, i),
+			reg);
 		if (rc < 0)
 			goto exit;
 	}
 
 	/* sync */
 	reg = QPNP_WLED_SYNC;
-	rc = qpnp_wled_write_reg(wled, &reg, QPNP_WLED_SYNC_REG(wled->sink_base));
+	rc = qpnp_wled_write_reg(wled, QPNP_WLED_SYNC_REG(wled->sink_base), reg);
 	if (rc < 0)
 		goto exit;
 
@@ -739,7 +737,7 @@ static int qpnp_wled_flash_en_locked(struct qpnp_wled *wled, int en, int duratio
 				wled->cons_sync_write_delay_us + 1);
 
 	reg = QPNP_WLED_SYNC_RESET;
-	rc = qpnp_wled_write_reg(wled, &reg, QPNP_WLED_SYNC_REG(wled->sink_base));
+	rc = qpnp_wled_write_reg(wled, QPNP_WLED_SYNC_REG(wled->sink_base), reg);
 	if (rc < 0)
 		goto exit;
 
@@ -2482,11 +2480,11 @@ static int qpnp_wled_parse_dt(struct qpnp_wled *wled)
 			return rc;
 		}
 
-		rc = of_property_read_u32(spmi->dev.of_node,
+		rc = of_property_read_u32(pdev->dev.of_node,
 				"htc,hyb-thres-low", &temp_val);
 		if (!rc)
 			wled->hyb_thres_low = temp_val;
-		rc = of_property_read_u32(spmi->dev.of_node,
+		rc = of_property_read_u32(pdev->dev.of_node,
 				"htc,hyb-thres-low-wm", &temp_val);
 		if (!rc)
 			wled->hyb_thres_low_wm = temp_val;
