@@ -168,7 +168,8 @@ static ssize_t htc_cancel_fsync_write(struct file *file, const char __user *buff
 
 static int htc_cancel_fsync_read(struct seq_file *m, void *v)
 {
-	return seq_printf(m, "%d", cancel_fsync);
+	seq_printf(m, "%d", cancel_fsync);
+	return 0;
 }
 
 static int htc_cancel_fsync_open(struct inode *inode, struct file *file)
