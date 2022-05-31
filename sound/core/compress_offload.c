@@ -1016,7 +1016,6 @@ static int snd_compress_dev_register(struct snd_device *device)
 		return -EBADFD;
 	compr = device->device_data;
 
-	snprintf(str, sizeof(str), "comprC%iD%i", compr->card->number, compr->device);//HTC_AUD klocwork
 	pr_debug("reg device %s, direction %d\n", compr->name,
 			compr->direction);
 	/* register compressed device */

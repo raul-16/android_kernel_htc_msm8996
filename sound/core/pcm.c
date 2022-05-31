@@ -1114,11 +1114,9 @@ static int snd_pcm_dev_register(struct snd_device *device)
 			continue;
 		switch (cidx) {
 		case SNDRV_PCM_STREAM_PLAYBACK:
-			snprintf(str, sizeof(str), "pcmC%iD%ip", pcm->card->number, pcm->device);//HTC_AUD klocwork
 			devtype = SNDRV_DEVICE_TYPE_PCM_PLAYBACK;
 			break;
 		case SNDRV_PCM_STREAM_CAPTURE:
-			snprintf(str, sizeof(str), "pcmC%iD%ic", pcm->card->number, pcm->device); //HTC_AUD klocwork
 			devtype = SNDRV_DEVICE_TYPE_PCM_CAPTURE;
 			break;
 		}
