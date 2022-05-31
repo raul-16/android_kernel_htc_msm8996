@@ -1810,39 +1810,6 @@ static int pn544_remove(struct i2c_client *client)
 	return 0;
 }
 
-#ifdef CONFIG_PM
-static int pn544_suspend(struct i2c_client *client, pm_message_t state)
-{
-	struct pn544_dev *pni = pn_info;
-
-        D("%s: irq = %d, ven_gpio = %d, isEn = %d, isReadBlock =%d\n", __func__, \
-                gpio_get_value(pni->irq_gpio), gpio_get_value(pni->ven_gpio), pn544_isEn(), pni->isReadBlock);
-
-	if (pni->ven_value && pni->isReadBlock && is_alive) {
-		pni->irq_enabled = true;
-		enable_irq(pni->client->irq);
-		irq_set_irq_wake(pni->client->irq, 1);
-	}
-
-	return 0;
-}
-
-static int pn544_resume(struct i2c_client *client)
-{
-	struct pn544_dev *pni = pn_info;
-
-        D("%s: irq = %d, ven_gpio = %d, isEn = %d, isReadBlock =%d\n", __func__, \
-                gpio_get_value(pni->irq_gpio), gpio_get_value(pni->ven_gpio), pn544_isEn(), pni->isReadBlock);
-
-	if (pni->ven_value && pni->isReadBlock && is_alive) {
-		pn544_disable_irq(pni);
-		irq_set_irq_wake(pni->client->irq, 0);
-	}
-
-	return 0;
-}
-#endif
-
 static const struct i2c_device_id pn544_id[] = {
 	{ "pn544", 0 },
 	{ }
@@ -1863,10 +1830,6 @@ static struct i2c_driver pn544_driver = {
 		.name	= "pn544",
 		.of_match_table = pn544_match_table,
 	},
-#if CONFIG_PM
-	.suspend	= pn544_suspend,
-	.resume		= pn544_resume,
-#endif
 };
 
 /*
