@@ -697,12 +697,6 @@ register_fail:
 
 static void __exit htc_radio_smem_exit(void)
 {
-#ifdef CONFIG_RADIO_FEEDBACK
-	int ret;
-	ret = misc_deregister(&radio_feedback_misc);
-	if (ret < 0)
-		pr_err("failed to unregister misc device!\n");
-#endif // CONFIG_RADIO_FEEDBACK
 	platform_driver_unregister(&htc_radio_smem_driver);
 }
 

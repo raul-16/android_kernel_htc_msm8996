@@ -620,7 +620,6 @@ err_misc_register:
 
 static void __exit port_list_exit(void)
 {
-	int ret;
 	struct list_head *listptr;
 	struct p_list *entry;
 
@@ -628,9 +627,7 @@ static void __exit port_list_exit(void)
 	device_destroy(p_class, 0);
 	class_destroy(p_class);
 
-	ret = misc_deregister(&portlist_misc);
-	if (ret < 0)
-		PF_LOG_ERR("[Port list] failed to unregister misc device!\n");
+	misc_deregister(&portlist_misc);
 
 	list_for_each(listptr, &curr_port_list.list) {
 		entry = list_entry(listptr, struct p_list, list);

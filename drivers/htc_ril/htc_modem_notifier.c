@@ -115,11 +115,7 @@ int __init htc_modem_notifier_init(void)
 
 static void __exit htc_modem_notifier_exit(void)
 {
-	int ret;
-
-    ret = misc_deregister(&modem_notifier_misc);
-	if (ret < 0)
-		pr_err("[modem_notifier]%s: failed to unregister misc device!\n", __func__);
+   misc_deregister(&modem_notifier_misc);
 }
 
 module_init(htc_modem_notifier_init);
